@@ -4214,6 +4214,8 @@ dnl bpo-45774/GH-29507: The CPP check in AC_CHECK_HEADER can fail on FreeBSD,
 dnl hence CPPFLAGS instead of CFLAGS.
   CPPFLAGS="$CPPFLAGS $LIBSQLITE3_CFLAGS"
   LDFLAGS="$LIBSQLITE3_LIBS $LDFLAGS"
+  LIBS="$LIBS -lm"  # Add math library for SQLite's math functions
+
 
   AC_CHECK_HEADER([sqlite3.h], [
     have_sqlite3=yes
