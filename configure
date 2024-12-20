@@ -15394,6 +15394,9 @@ save_LIBS=$LIBS
 
   CPPFLAGS="$CPPFLAGS $LIBSQLITE3_CFLAGS"
   LDFLAGS="$LIBSQLITE3_LIBS $LDFLAGS"
+  old_LIBS="$LIBS"
+  LIBS="$LIBS -lm"  # Add math library for SQLite's math functions
+
 
   ac_fn_c_check_header_compile "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
 if test "x$ac_cv_header_sqlite3_h" = xyes
@@ -15957,6 +15960,8 @@ else $as_nop
 
 fi
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for sqlite3_serialize" >&5
+printf %s "checking for sqlite3_serialize... " >&6; }
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for sqlite3_serialize in -lsqlite3" >&5
 printf %s "checking for sqlite3_serialize in -lsqlite3... " >&6; }
 if test ${ac_cv_lib_sqlite3_sqlite3_serialize+y}
@@ -15998,6 +16003,13 @@ then :
 
 printf "%s\n" "#define PY_SQLITE_HAVE_SERIALIZE 1" >>confdefs.h
 
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
+else $as_nop
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
 
 fi
 
@@ -16011,6 +16023,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
 
 fi
 
+  LIBS="$old_LIBS"  # Restore original LIBS
 
 CFLAGS=$save_CFLAGS
 CPPFLAGS=$save_CPPFLAGS

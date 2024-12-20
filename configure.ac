@@ -4214,6 +4214,9 @@ dnl bpo-45774/GH-29507: The CPP check in AC_CHECK_HEADER can fail on FreeBSD,
 dnl hence CPPFLAGS instead of CFLAGS.
   CPPFLAGS="$CPPFLAGS $LIBSQLITE3_CFLAGS"
   LDFLAGS="$LIBSQLITE3_LIBS $LDFLAGS"
+  old_LIBS="$LIBS"
+  LIBS="$LIBS -lm"  # Add math library for SQLite's math functions
+
 
   AC_CHECK_HEADER([sqlite3.h], [
     have_sqlite3=yes
@@ -4244,16 +4247,21 @@ dnl hence CPPFLAGS instead of CFLAGS.
         [have_sqlite3_load_extension=yes],
         [have_sqlite3_load_extension=no]
       )
+      AC_MSG_CHECKING([for sqlite3_serialize])
       AC_CHECK_LIB([sqlite3], [sqlite3_serialize], [
         AC_DEFINE(
           [PY_SQLITE_HAVE_SERIALIZE], [1],
           [Define if SQLite was compiled with the serialize API]
         )
+        AC_MSG_RESULT([yes])
+      ], [
+        AC_MSG_RESULT([no])
       ])
     ], [
       have_supported_sqlite3=no
     ])
   ])
+  LIBS="$old_LIBS"  # Restore original LIBS
 ])
 
 dnl Check for support for loadable sqlite extensions
