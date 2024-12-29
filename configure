@@ -7458,6 +7458,11 @@ fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $enable_shared" >&5
 printf "%s\n" "$enable_shared" >&6; }
 
+if test "x$enable_shared" = xno
+then :
+  PKG_CONFIG="$PKG_CONFIG --static"
+fi
+
 # --with-static-libpython
 STATIC_LIBPYTHON=1
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for --with-static-libpython" >&5

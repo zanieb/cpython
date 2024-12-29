@@ -1472,6 +1472,9 @@ then
 fi
 AC_MSG_RESULT([$enable_shared])
 
+AS_VAR_IF([enable_shared], [no],
+          [PKG_CONFIG="$PKG_CONFIG --static"])
+
 # --with-static-libpython
 STATIC_LIBPYTHON=1
 AC_MSG_CHECKING([for --with-static-libpython])
