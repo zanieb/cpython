@@ -114,7 +114,7 @@ class WaitTests:
 
     def test_timeout(self):
         short_timeout = 0.050
-        long_timeout = short_timeout * 10
+        long_timeout = short_timeout * 20
 
         future = self.executor.submit(time.sleep, long_timeout)
 
