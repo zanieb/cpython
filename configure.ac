@@ -2220,6 +2220,7 @@ then
      -reorder-functions=cdsort
      -split-functions
      -split-all-cold
+     -split-strategy=cdsplit
      -icf=1
      -inline-all
      -split-eh
