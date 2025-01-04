@@ -2206,6 +2206,7 @@ then
      -reorder-blocks=ext-tsp
      -reorder-functions=hfsort+
      -split-functions
+     -split-strategy=cdsplit
      -icf=1
      -inline-all
      -split-eh
