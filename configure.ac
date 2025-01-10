@@ -2171,7 +2171,7 @@ then
   AS_VAR_SET(
     [BOLT_COMMON_FLAGS],
     [m4_normalize("
-      [-update-debug-sections]
+      []
 
       dnl At least LLVM 19.x doesn't support computed gotos in PIC compiled code.
       dnl Exclude functions containing computed gotos.
