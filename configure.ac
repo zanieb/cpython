@@ -2231,6 +2231,7 @@ then
      -dyno-stats
      -use-gnu-stack
      -frame-opt=hot
+     -hugify
    ")]
   )
 fi
