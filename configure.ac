@@ -2214,6 +2214,7 @@ then
      -jump-tables=aggressive
      -inline-ap
      -indirect-call-promotion=all
+     -plt=all
      -dyno-stats
      -use-gnu-stack
      -frame-opt=hot
