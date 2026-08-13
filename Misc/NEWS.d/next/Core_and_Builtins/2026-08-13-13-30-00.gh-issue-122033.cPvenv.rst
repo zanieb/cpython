@@ -1,0 +1,3 @@
+Fix :data:`sys._base_executable` in copied virtual environments when an
+unversioned executable in the base installation refers to a different Python
+version.

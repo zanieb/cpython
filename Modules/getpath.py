@@ -388,6 +388,17 @@ if not py_setpath:
                         base_executable = ''
                 except OSError:
                     pass
+                if not base_executable and os_name != 'nt':
+                    # A copied executable has no symlink to resolve, and its
+                    # unversioned name may refer to another Python in 'home'.
+                    # Prefer the base executable recorded by venv itself.
+                    for config_line in pyvenvcfg:
+                        config_key, had_equ, config_value = config_line.partition('=')
+                        if had_equ and config_key.strip().lower() == 'executable':
+                            configured_executable = config_value.strip()
+                            if configured_executable and isfile(configured_executable):
+                                base_executable = configured_executable
+                            break
                 if not base_executable:
                     base_executable = joinpath(executable_dir, basename(executable))
                     # It's possible "python" is executed from within a posix venv but that
