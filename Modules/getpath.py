@@ -389,9 +389,9 @@ if not py_setpath:
                 except OSError:
                     pass
                 if not base_executable and os_name != 'nt':
-                    # A copied executable has no symlink to resolve, and its
-                    # unversioned name may refer to another Python in 'home'.
-                    # Prefer the base executable recorded by venv itself.
+                    # A copied executable has no symlink to resolve, and an
+                    # executable with the same name in 'home' may belong to a
+                    # different installation. Prefer the base recorded by venv.
                     for config_line in pyvenvcfg:
                         config_key, had_equ, config_value = config_line.partition('=')
                         if had_equ and config_key.strip().lower() == 'executable':

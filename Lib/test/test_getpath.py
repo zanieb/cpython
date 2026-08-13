@@ -473,7 +473,11 @@ class MockGetPathTests(unittest.TestCase):
 
     def test_venv_copy_posix_uses_configured_executable(self):
         "Test a copied venv uses its recorded base instead of another Python."
-        for executable_name in ("python", "python3"):
+        for executable_name, configured_executable in (
+            ("python", "/usr/bin/python9.8"),
+            ("python3", "/usr/bin/python9.8"),
+            ("python9.8", "/other/bin/python9.8"),
+        ):
             with self.subTest(executable_name=executable_name):
                 ns = MockPosixNamespace(
                     argv0=executable_name,
@@ -481,19 +485,19 @@ class MockGetPathTests(unittest.TestCase):
                     ENV_PATH="/venv/bin:/usr/bin",
                 )
                 ns.add_known_xfile(f"/usr/bin/{executable_name}")
-                ns.add_known_xfile("/usr/bin/python9.8")
+                ns.add_known_xfile(configured_executable)
                 ns.add_known_xfile(f"/venv/bin/{executable_name}")
                 ns.add_known_file("/usr/lib/python9.8/os.py")
                 ns.add_known_dir("/usr/lib/python9.8/lib-dynload")
                 ns.add_known_file("/venv/pyvenv.cfg", [
                     "home = /usr/bin",
-                    "executable = /usr/bin/python9.8",
+                    f"executable = {configured_executable}",
                 ])
                 expected = dict(
                     executable=f"/venv/bin/{executable_name}",
                     prefix="/venv",
                     exec_prefix="/venv",
-                    base_executable="/usr/bin/python9.8",
+                    base_executable=configured_executable,
                     base_prefix="/usr",
                     base_exec_prefix="/usr",
                     module_search_paths_set=1,
