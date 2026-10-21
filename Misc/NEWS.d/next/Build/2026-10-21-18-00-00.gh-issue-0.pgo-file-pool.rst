@@ -1,3 +1,0 @@
-Use LLVM profile merging with a bounded pool of raw profile files for
-profile-guided optimization. Reused process IDs no longer overwrite
-earlier training data.
