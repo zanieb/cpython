@@ -1,0 +1,2 @@
+Guard the dyld shared-cache API availability probe when building
+:mod:`ctypes` for older Apple deployment targets with a newer SDK.

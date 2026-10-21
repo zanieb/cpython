@@ -5666,7 +5666,31 @@ PY_CHECK_FUNC([prlimit], [
 #include <sys/resource.h>
 ])
 
-PY_CHECK_FUNC([_dyld_shared_cache_contains_path], [@%:@include <mach-o/dyld.h>], [HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH])
+dnl Match the runtime availability guard used by _ctypes. Taking the function's
+dnl address unguarded can trigger an availability error for older Apple targets.
+AC_CACHE_CHECK([for _dyld_shared_cache_contains_path],
+  [ac_cv_func__dyld_shared_cache_contains_path], [
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #include <mach-o/dyld.h>
+    #ifndef __has_builtin
+    #  define __has_builtin(x) 0
+    #endif
+  ]], [[
+    #if __has_builtin(__builtin_available)
+    if (__builtin_available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)) {
+        void *x = _dyld_shared_cache_contains_path;
+        (void)x;
+    }
+    #else
+    void *x = _dyld_shared_cache_contains_path;
+    (void)x;
+    #endif
+  ]])], [ac_cv_func__dyld_shared_cache_contains_path=yes],
+       [ac_cv_func__dyld_shared_cache_contains_path=no])
+])
+AS_VAR_IF([ac_cv_func__dyld_shared_cache_contains_path], [yes],
+  [AC_DEFINE([HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH], [1],
+    [Define if you have the '_dyld_shared_cache_contains_path' function.])])
 
 PY_CHECK_FUNC([memfd_create], [
 #ifdef HAVE_SYS_MMAN_H
