@@ -1,0 +1,3 @@
+With :option:`--enable-bolt`, use safe identical code folding in the default
+BOLT apply flags when supported. Fall back to ``-icf=0`` when the capability
+probe fails; explicitly supplied ``BOLT_APPLY_FLAGS`` remain unchanged.
