@@ -438,6 +438,8 @@ class SSLContext(_SSLContext):
     """An SSLContext holds various SSL-related configuration options and
     data, such as certificates and possibly a private key."""
     _windows_cert_stores = ("CA", "ROOT")
+    _fallback_cert_file = "/etc/pki/tls/cert.pem"
+    _fallback_cert_dir = "/etc/pki/tls/certs"
 
     sslsocket_class = None  # SSLSocket is assigned later.
     sslobject_class = None  # SSLObject is assigned later.
@@ -546,6 +548,18 @@ class SSLContext(_SSLContext):
         if sys.platform == "win32":
             for storename in self._windows_cert_stores:
                 self._load_windows_store_certs(storename, purpose)
+        elif sys.platform == "linux":
+            cert_file_env, cert_file, cert_dir_env, cert_dir = (
+                _ssl.get_default_verify_paths()
+            )
+            if (cert_file_env not in os.environ
+                    and not os.path.isfile(cert_file)
+                    and os.path.isfile(self._fallback_cert_file)):
+                self.load_verify_locations(cafile=self._fallback_cert_file)
+            if (cert_dir_env not in os.environ
+                    and not os.path.isdir(cert_dir)
+                    and os.path.isdir(self._fallback_cert_dir)):
+                self.load_verify_locations(capath=self._fallback_cert_dir)
         self.set_default_verify_paths()
 
     if hasattr(_SSLContext, 'minimum_version'):

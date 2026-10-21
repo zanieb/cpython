@@ -1611,8 +1611,13 @@ to speed up repeated connections from the same clients.
    Load a set of default "certification authority" (CA) certificates from
    default locations. On Windows it loads CA certs from the ``CA`` and
    ``ROOT`` system stores. On all systems it calls
-   :meth:`SSLContext.set_default_verify_paths`. In the future the method may
-   load CA certificates from other locations, too.
+   :meth:`SSLContext.set_default_verify_paths`.
+
+   On Linux, if an OpenSSL default certificate file or directory is missing
+   and its environment variable is unset, the method also looks for
+   :file:`/etc/pki/tls/cert.pem` or :file:`/etc/pki/tls/certs`, respectively.
+   These locations are used by Red Hat distributions. An environment override,
+   including an empty value, disables the corresponding fallback.
 
    The *purpose* flag specifies what kind of CA certificates are loaded. The
    default settings :const:`Purpose.SERVER_AUTH` loads certificates, that are
@@ -1621,6 +1626,9 @@ to speed up repeated connections from the same clients.
    certificate verification on the server side.
 
    .. versionadded:: 3.4
+
+   .. versionchanged:: 3.16
+      Add the Linux certificate-store fallback.
 
 .. method:: SSLContext.load_verify_locations(cafile=None, capath=None, cadata=None)
 
