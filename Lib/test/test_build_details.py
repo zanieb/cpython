@@ -138,6 +138,13 @@ class CPythonBuildDetailsTests(unittest.TestCase, FormatTestsBase):
         with open(self.location, 'r', encoding='utf-8') as f:
             return f.read()
 
+    def test_abi_flags(self):
+        self.assertEqual(self.key('abi.flags'), list(sys.abiflags))
+
+    def test_extension_suffixes(self):
+        self.assertEqual(self.key('suffixes.extensions'),
+                         importlib.machinery.EXTENSION_SUFFIXES)
+
     @needs_installed_python
     def test_location(self):
         self.assertTrue(os.path.isfile(self.location))
@@ -190,6 +197,96 @@ class CPythonBuildDetailsTests(unittest.TestCase, FormatTestsBase):
         # The path must name an installed static library (an 'ar' archive).
         with open(value['static'], 'rb') as f:
             self.assertEqual(f.read(8), b'!<arch>\n')
+
+
+@unittest.skipIf(generate_build_details is None,
+                 "Failed to import generate-build-details")
+@unittest.skipIf(os.name != 'posix', 'POSIX target configuration')
+class BuildDetailsTargetTests(unittest.TestCase):
+    def generate_target(self, **config_vars):
+        get_config_var = sysconfig.get_config_var
+
+        def target_config_var(name):
+            if name in config_vars:
+                return config_vars[name]
+            return get_config_var(name)
+
+        with mock.patch.object(sysconfig, 'get_config_var', target_config_var):
+            return generate_build_details.generate_data('1.0')
+
+    def test_native_extension_suffixes(self):
+        self.assertEqual(generate_build_details.get_extension_suffixes(),
+                         importlib.machinery.EXTENSION_SUFFIXES)
+
+    def test_cross_abi_and_platform(self):
+        data = self.generate_target(
+            ABIFLAGS='td', DYNLOADFILE='dynload_shlib.o', MACHDEP='linux',
+            MULTIARCH='arm-linux-gnueabihf',
+            EXT_SUFFIX='.cpython-316td-arm-linux-gnueabihf.so',
+            ALT_SOABI='cpython-316t-arm-linux-gnueabihf',
+            SOABI_PLATFORM='arm-linux-gnueabihf', Py_GIL_DISABLED=1)
+        self.assertEqual(data['abi']['flags'], ['t', 'd'])
+        self.assertEqual(data['abi']['extension_suffix'],
+                         '.cpython-316td-arm-linux-gnueabihf.so')
+        self.assertEqual(data['abi']['stable_abi_suffix'],
+                         '.abi3t-arm-linux-gnueabihf.so')
+        self.assertEqual(data['suffixes']['extensions'], [
+            '.cpython-316td-arm-linux-gnueabihf.so',
+            '.cpython-316t-arm-linux-gnueabihf.so',
+            '.abi3t-arm-linux-gnueabihf.so', '.abi3t.so', '.so',
+        ])
+        self.assertEqual(data['implementation']['_multiarch'],
+                         'arm-linux-gnueabihf')
+
+    def test_cross_macos(self):
+        data = self.generate_target(
+            ABIFLAGS='', DYNLOADFILE='dynload_shlib.o', MACHDEP='darwin',
+            EXT_SUFFIX='.cpython-316-darwin.so', ALT_SOABI=0,
+            SOABI_PLATFORM='darwin', Py_GIL_DISABLED=0)
+        self.assertEqual(data['abi']['flags'], [])
+        self.assertEqual(data['abi']['stable_abi_suffix'], '.abi3-darwin.so')
+        self.assertEqual(data['suffixes']['extensions'], [
+            '.cpython-316-darwin.so', '.abi3-darwin.so', '.abi3.so',
+            '.abi3t-darwin.so', '.abi3t.so', '.so',
+        ])
+
+    def test_untagged_platform(self):
+        data = self.generate_target(
+            DYNLOADFILE='dynload_shlib.o', MACHDEP='linux',
+            EXT_SUFFIX='.cpython-316.so', ALT_SOABI=0,
+            SOABI_PLATFORM=0, Py_GIL_DISABLED=0)
+        self.assertEqual(data['suffixes']['extensions'], [
+            '.cpython-316.so', '.abi3.so', '.abi3t.so', '.so',
+        ])
+
+    def test_cygwin(self):
+        data = self.generate_target(
+            DYNLOADFILE='dynload_shlib.o', MACHDEP='cygwin',
+            EXT_SUFFIX='.cpython-316-x86_64-cygwin.dll')
+        self.assertEqual(data['suffixes']['extensions'], [
+            '.cpython-316-x86_64-cygwin.dll', '.dll',
+        ])
+        self.assertNotIn('stable_abi_suffix', data['abi'])
+
+    def test_hpux(self):
+        data = self.generate_target(
+            DYNLOADFILE='dynload_hpux.o', MACHDEP='hp-ux',
+            EXT_SUFFIX='.cpython-316.sl')
+        self.assertEqual(data['suffixes']['extensions'], [
+            '.cpython-316.sl', '.sl',
+        ])
+        self.assertNotIn('stable_abi_suffix', data['abi'])
+
+    def test_no_dynamic_loading(self):
+        for platform in ('wasi', 'emscripten'):
+            with self.subTest(platform=platform):
+                data = self.generate_target(
+                    DYNLOADFILE='dynload_stub.o', MACHDEP=platform)
+                self.assertEqual(data['suffixes']['extensions'], [])
+                self.assertNotIn('extension_suffix', data['abi'])
+                self.assertNotIn('stable_abi_suffix', data['abi'])
+                self.assertFalse(
+                    data['implementation']['supports_isolated_interpreters'])
 
 
 @unittest.skipIf(
