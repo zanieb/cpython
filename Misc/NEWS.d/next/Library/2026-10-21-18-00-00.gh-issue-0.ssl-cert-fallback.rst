@@ -1,3 +1,0 @@
-On Linux, :meth:`ssl.SSLContext.load_default_certs` falls back to the
-Red Hat certificate store when the corresponding OpenSSL default path is
-missing and its environment variable has not been set.
