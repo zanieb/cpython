@@ -12,21 +12,29 @@ jobs:
   notify-new-bugs-announce:
     runs-on: ubuntu-slim
     permissions:
+      contents: read
       issues: read
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
-      - run: npm install mailgun.js form-data
+      - run: npm ci --ignore-scripts --prefix .github/dependencies/notification
       - name: Send notification
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           MAILGUN_API_KEY: ${{ secrets.MAILGUN_PYTHON_ORG_MAILGUN_KEY }}
         with:
           script: |
-            const Mailgun = require("mailgun.js");
-            const formData = require('form-data');
+            const { createRequire } = require("node:module");
+            const notificationRequire = createRequire(
+              `${process.env.GITHUB_WORKSPACE}/.github/dependencies/notification/package.json`
+            );
+            const Mailgun = notificationRequire("mailgun.js");
+            const formData = notificationRequire("form-data");
             const mailgun = new Mailgun(formData);
             const DOMAIN = "mailgun.python.org";
             const mg = mailgun.client({username: 'api', key: process.env.MAILGUN_API_KEY});
