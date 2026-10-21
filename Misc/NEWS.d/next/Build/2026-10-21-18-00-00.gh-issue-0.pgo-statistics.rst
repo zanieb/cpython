@@ -1,0 +1,2 @@
+Print a coverage summary and the functions with the largest profile counts
+after merging LLVM profile data in a profile-guided optimization build.
