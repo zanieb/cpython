@@ -1721,7 +1721,7 @@ FROZEN_FILES_OUT = \
 		Python/frozen_modules/frozen_only.h
 # End FROZEN_FILES_OUT
 
-Programs/_freeze_module.o: Programs/_freeze_module.c Makefile
+Programs/_freeze_module.o: Programs/_freeze_module.c Makefile $(PYTHON_HEADERS)
 
 Modules/getpath_noop.o: $(srcdir)/Modules/getpath_noop.c Makefile
 
