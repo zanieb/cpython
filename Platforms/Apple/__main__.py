@@ -49,7 +49,7 @@ import time
 from collections.abc import Callable, Sequence
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from os.path import basename, relpath
+from os.path import relpath
 from pathlib import Path
 from subprocess import CalledProcessError
 
@@ -364,6 +364,9 @@ def unpack_deps(
     # If you're a member of the Python core team, and you'd like to be able to
     # push these tags yourself, please contact Malcolm Smith or Russell
     # Keith-Magee.
+    sys.path.insert(0, str(PYTHON_DIR / "Tools" / "build"))
+    from download_dependencies import download as download_dependency
+
     deps_url = "https://github.com/beeware/cpython-apple-source-deps/releases/download"
     for name_ver in [
         "BZip2-1.0.8-2",
@@ -374,9 +377,19 @@ def unpack_deps(
         "zstd-1.5.7-1",
     ]:
         filename = f"{name_ver.lower()}-{apple_target(host)}.tar.gz"
-        archive_path = download(
+        archive_path = download_dependency(
             f"{deps_url}/{name_ver}/{filename}",
-            target_dir=cache_dir,
+            cache_dir / filename,
+            retrieve=lambda url, path: run([
+                "curl",
+                "-Lf",
+                "--retry",
+                "5",
+                "--retry-all-errors",
+                "-o",
+                path,
+                url,
+            ]),
         )
         shutil.unpack_archive(archive_path, prefix_dir)
 
@@ -385,31 +398,6 @@ def unpack_deps(
     if platform == "iOS":
         for dylib in prefix_dir.glob("**/*.dylib"):
             dylib.unlink()
-
-
-def download(url: str, target_dir: Path) -> Path:
-    """Download the specified URL into the given directory.
-
-    :return: The path to the downloaded archive.
-    """
-    target_path = Path(target_dir).resolve()
-    target_path.mkdir(exist_ok=True, parents=True)
-
-    out_path = target_path / basename(url)
-    if not Path(out_path).is_file():
-        run([
-            "curl",
-            "-Lf",
-            "--retry",
-            "5",
-            "--retry-all-errors",
-            "-o",
-            out_path,
-            url,
-        ])
-    else:
-        print(f"Using cached version of {basename(url)}")
-    return out_path
 
 
 def configure_host_python(
@@ -434,7 +422,11 @@ def configure_host_python(
                 if context.cache_dir
                 else CROSS_BUILD_DIR / "downloads"
             )
-            unpack_deps(context.platform, host, prefix_dir, cache_dir)
+            try:
+                unpack_deps(context.platform, host, prefix_dir, cache_dir)
+            except BaseException:
+                shutil.rmtree(prefix_dir)
+                raise
         else:
             print("Dependencies already installed")
 
