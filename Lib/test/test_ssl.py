@@ -1792,6 +1792,57 @@ class ContextTests(unittest.TestCase):
             stats["x509"] += 1
             self.assertEqual(ctx.cert_store_stats(), stats)
 
+    @unittest.skipUnless(sys.platform == "linux", "Linux certificate stores")
+    def test_load_default_certs_linux_fallback(self):
+        paths = ("SSL_CERT_FILE", "missing-cert-file",
+                 "SSL_CERT_DIR", "missing-cert-dir")
+        with (os_helper.EnvironmentVarGuard() as env,
+              unittest.mock.patch.object(ssl._ssl, "get_default_verify_paths",
+                                return_value=paths)):
+            env.unset("SSL_CERT_FILE")
+            env.unset("SSL_CERT_DIR")
+            ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            ctx._fallback_cert_file = CAFILE_CACERT
+            ctx._fallback_cert_dir = "missing-fallback-dir"
+            with unittest.mock.patch.object(ctx, "set_default_verify_paths"):
+                ctx.load_default_certs()
+            self.assertEqual(ctx.cert_store_stats()["x509_ca"], 1)
+
+    @unittest.skipUnless(sys.platform == "linux", "Linux certificate stores")
+    def test_load_default_certs_linux_fallback_precedence(self):
+        for default_exists in (False, True):
+            for file_override in (None, "", "custom-cert-file"):
+                for dir_override in (None, "", "custom-cert-dir"):
+                    with self.subTest(default_exists=default_exists,
+                                      file_override=file_override,
+                                      dir_override=dir_override):
+                        paths = ("SSL_CERT_FILE",
+                                 CAFILE_CACERT if default_exists else "missing-file",
+                                 "SSL_CERT_DIR",
+                                 CAPATH if default_exists else "missing-dir")
+                        with (os_helper.EnvironmentVarGuard() as env,
+                              unittest.mock.patch.object(ssl._ssl, "get_default_verify_paths",
+                                                return_value=paths)):
+                            for name, value in (("SSL_CERT_FILE", file_override),
+                                                ("SSL_CERT_DIR", dir_override)):
+                                if value is None:
+                                    env.unset(name)
+                                else:
+                                    env[name] = value
+                            ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                            ctx._fallback_cert_file = CAFILE_CACERT
+                            ctx._fallback_cert_dir = CAPATH
+                            with (unittest.mock.patch.object(ctx, "load_verify_locations") as load,
+                                  unittest.mock.patch.object(ctx, "set_default_verify_paths") as defaults):
+                                ctx.load_default_certs()
+                            expected = []
+                            if not default_exists and file_override is None:
+                                expected.append(unittest.mock.call(cafile=CAFILE_CACERT))
+                            if not default_exists and dir_override is None:
+                                expected.append(unittest.mock.call(capath=CAPATH))
+                            self.assertEqual(load.call_args_list, expected)
+                            defaults.assert_called_once_with()
+
     def _assert_context_options(self, ctx):
         self.assertEqual(ctx.options & ssl.OP_NO_SSLv2, ssl.OP_NO_SSLv2)
         if OP_NO_COMPRESSION != 0:
