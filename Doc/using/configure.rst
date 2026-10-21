@@ -1495,6 +1495,19 @@ contains a single line describing the details of the build platform,
 e.g., ``macosx-14.3-arm64-3.12`` or ``linux-x86_64-3.13``.
 
 
+make write-python-for-build
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Create an executable :file:`python-for-build` wrapper in the build directory.
+It runs commands from the build directory using the configured build
+interpreter and the same environment as Python build commands, including the
+target's :mod:`sysconfig` settings for cross builds. Build scripts can use this
+wrapper to run additional Python commands
+without duplicating the environment from the generated :file:`Makefile`.
+
+.. versionadded:: 3.16
+
+
 make profile-opt
 ^^^^^^^^^^^^^^^^
 
