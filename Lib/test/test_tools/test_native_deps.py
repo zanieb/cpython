@@ -5,9 +5,11 @@ import importlib.util
 import io
 import json
 import os
+import shlex
 from pathlib import Path
 import tarfile
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -119,6 +121,51 @@ class SourceTests(unittest.TestCase):
         manifest = deps.load_manifest()
         self.assertIn("libffi-3.4.6", manifest["sources"])
         self.assertIn("mpdecimal-4.0.1", manifest["sources"])
+
+
+class ReportTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        spec = importlib.util.spec_from_file_location(
+            "native_deps_report", ROOT / "Tools/build/native_deps_report.py")
+        cls.reporter = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.reporter)
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.prefix = Path(self.tmp.name)
+        manifest = deps.load_manifest()
+        receipt = {"schema": 1, "inputs": {
+            "recipes": manifest["native-builds"], "sources": manifest["sources"],
+        }}
+        (self.prefix / ".cpython-dependencies.json").write_text(json.dumps(receipt))
+        self.config = {}
+        for name in ("_CTYPES", "_DECIMAL"):
+            self.config[f"MODULE_{name}_CFLAGS"] = shlex.quote(f"-I{self.prefix}/include")
+            self.config[f"MODULE_{name}_LDFLAGS"] = shlex.quote(f"-L{self.prefix}/lib")
+        self.module = SimpleNamespace(__file__="extension.so", __libmpdec_version__="4.0.1")
+        patcher = patch.object(self.reporter.sysconfig, "get_config_var", self.config.get)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        patcher = patch.object(self.reporter.importlib, "import_module", return_value=self.module)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_selected_prefix(self):
+        report = self.reporter.collect_report(self.prefix)
+        self.assertEqual(report["errors"], [])
+        self.assertIsNone(report["libraries"]["libffi"]["runtime-version"])
+
+    def test_reject_other_prefix(self):
+        self.config["MODULE__CTYPES_CFLAGS"] = "-I/another/include"
+        report = self.reporter.collect_report(self.prefix)
+        self.assertEqual(report["errors"], ["_ctypes did not select the managed headers"])
+
+    def test_reject_runtime_version_mismatch(self):
+        self.module.__libmpdec_version__ = "2.5.1"
+        report = self.reporter.collect_report(self.prefix)
+        self.assertEqual(report["errors"], ["_decimal reports 2.5.1, expected 4.0.1"])
 
 
 if __name__ == "__main__":

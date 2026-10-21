@@ -69,3 +69,27 @@ normal system-package configuration. `configure` remains authoritative about
 which extension modules can be built. To require all available optional modules,
 set `PYTHONSTRICTEXTENSIONBUILD=1` when running `make`. Explicitly disabled and
 platform-inapplicable modules are excluded by the existing extension checker.
+
+## CI coverage and diagnostics
+
+The `Native dependencies` workflow builds CPython with system libraries and with
+managed `libffi` and `mpdecimal` on a named Ubuntu runner image. Both jobs require
+all applicable extension modules and run the `ctypes` and `decimal` suites. The
+managed job uses the same command as local development and reuses only downloaded
+sources across runs; it builds binaries with the current job's compiler.
+
+Run the dependency report with the interpreter being inspected:
+
+```sh
+./python Tools/build/native_deps_report.py
+./python Tools/build/native_deps_report.py --prefix .native-deps
+```
+
+The report contains the module paths, configured compiler and linker flags, and
+runtime versions when the libraries expose them. With `--prefix`, it also includes
+the installation receipt and requires imports to succeed, configured header and
+library flags to include the prefix, and any reported runtime version to match
+the selected source. Other search paths may also be present.
+Older `libffi` versions do not expose a runtime version; their value is `null`.
+The report records configuration evidence, not a full audit of dynamic linking.
+CI uploads it alongside `config.log` and the broader `test.pythoninfo` report.
