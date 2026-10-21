@@ -1888,8 +1888,9 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-build-python=python3.16
-                          path to build python binary for cross compiling
-                          (default: _bootstrap_python or python3.16)
+                          path to build python binary for building and
+                          freezing modules (default: _bootstrap_python or
+                          python3.16)
   --with-pkg-config=[yes|no|check]
                           use pkg-config to detect build options (default is
                           check)
@@ -3849,22 +3850,22 @@ printf %s "checking for Python interpreter freezing... " >&6; }
 printf "%s\n" "$PYTHON_FOR_FREEZE" >&6; }
 
 
-if test "x$cross_compiling" = xyes
+if ${with_build_python:+false} :
 then :
 
-        FREEZE_MODULE_BOOTSTRAP='$(PYTHON_FOR_FREEZE) $(srcdir)/Programs/_freeze_module.py'
-    FREEZE_MODULE_BOOTSTRAP_DEPS='$(srcdir)/Programs/_freeze_module.py'
-    FREEZE_MODULE='$(FREEZE_MODULE_BOOTSTRAP)'
-    FREEZE_MODULE_DEPS='$(FREEZE_MODULE_BOOTSTRAP_DEPS)'
-    PYTHON_FOR_BUILD_DEPS=''
-
-else case e in #(
-  e)
         FREEZE_MODULE_BOOTSTRAP='./Programs/_freeze_module'
     FREEZE_MODULE_BOOTSTRAP_DEPS="Programs/_freeze_module"
     FREEZE_MODULE='$(PYTHON_FOR_FREEZE) $(srcdir)/Programs/_freeze_module.py'
     FREEZE_MODULE_DEPS="_bootstrap_python \$(srcdir)/Programs/_freeze_module.py"
     PYTHON_FOR_BUILD_DEPS='$(BUILDPYTHON)'
+
+else case e in #(
+  e)
+        FREEZE_MODULE_BOOTSTRAP='$(PYTHON_FOR_FREEZE) $(srcdir)/Programs/_freeze_module.py'
+    FREEZE_MODULE_BOOTSTRAP_DEPS='$(srcdir)/Programs/_freeze_module.py'
+    FREEZE_MODULE='$(FREEZE_MODULE_BOOTSTRAP)'
+    FREEZE_MODULE_DEPS='$(FREEZE_MODULE_BOOTSTRAP_DEPS)'
+    PYTHON_FOR_BUILD_DEPS=''
 
  ;;
 esac
