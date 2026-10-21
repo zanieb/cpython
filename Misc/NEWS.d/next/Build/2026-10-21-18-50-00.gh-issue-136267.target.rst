@@ -1,0 +1,3 @@
+Generate ABI flags and isolated interpreter support in ``build-details.json``
+from the target configuration when using a separate build interpreter. On POSIX,
+also derive extension suffixes from the target configuration.

@@ -29,6 +29,41 @@ def get_dict_key(container: dict[str, Any], key: str) -> dict[str, Any]:
     return container
 
 
+def get_extension_suffixes() -> list[str]:
+    """Return target extension suffixes on POSIX, or native suffixes otherwise."""
+    if os.name != 'posix':
+        return importlib.machinery.EXTENSION_SUFFIXES
+
+    loader = sysconfig.get_config_var('DYNLOADFILE')
+    if loader == 'dynload_stub.o':
+        return []
+
+    suffixes = [sysconfig.get_config_var('EXT_SUFFIX')]
+    if loader == 'dynload_hpux.o':
+        return suffixes + ['.sl']
+    if loader != 'dynload_shlib.o':
+        raise ValueError(f'Unsupported dynamic loader: {loader}')
+
+    # Match `Python/dynload_shlib.c` using target configuration. The build
+    # interpreter's `importlib` suffixes can describe a different ABI or platform.
+    if sysconfig.get_config_var('MACHDEP') == 'cygwin':
+        return suffixes + ['.dll']
+
+    alt_soabi = sysconfig.get_config_var('ALT_SOABI')
+    if alt_soabi:
+        suffixes.append(f'.{alt_soabi}.so')
+
+    platform = sysconfig.get_config_var('SOABI_PLATFORM')
+    if not sysconfig.get_config_var('Py_GIL_DISABLED'):
+        if platform:
+            suffixes.append(f'.abi3-{platform}.so')
+        suffixes.append('.abi3.so')
+    if platform:
+        suffixes.append(f'.abi3t-{platform}.so')
+    suffixes.extend(['.abi3t.so', '.so'])
+    return suffixes
+
+
 def generate_data(schema_version: str) -> collections.defaultdict[str, Any]:
     """Generate the build-details.json data (PEP 739).
 
@@ -62,14 +97,18 @@ def generate_data(schema_version: str) -> collections.defaultdict[str, Any]:
     # Fix cross-compilation
     if '_multiarch' in data['implementation']:
         data['implementation']['_multiarch'] = sysconfig.get_config_var('MULTIARCH')
+    data['implementation']['supports_isolated_interpreters'] = (
+        sysconfig.get_config_var('MACHDEP') not in ('emscripten', 'wasi')
+    )
 
-    data['abi']['flags'] = list(sys.abiflags)
+    data['abi']['flags'] = list(sysconfig.get_config_var('ABIFLAGS') or '')
 
     data['suffixes']['source'] = importlib.machinery.SOURCE_SUFFIXES
     data['suffixes']['bytecode'] = importlib.machinery.BYTECODE_SUFFIXES
     #data['suffixes']['optimized_bytecode'] = importlib.machinery.OPTIMIZED_BYTECODE_SUFFIXES
     #data['suffixes']['debug_bytecode'] = importlib.machinery.DEBUG_BYTECODE_SUFFIXES
-    data['suffixes']['extensions'] = importlib.machinery.EXTENSION_SUFFIXES
+    extension_suffixes = get_extension_suffixes()
+    data['suffixes']['extensions'] = extension_suffixes
 
     LIBDIR = sysconfig.get_config_var('LIBDIR')
     LIBPL = sysconfig.get_config_var('LIBPL')
@@ -111,16 +150,15 @@ def generate_data(schema_version: str) -> collections.defaultdict[str, Any]:
     #
     # We only want to set abi.extension_suffix and stable_abi_suffix if
     # extension modules are supported.
-    if has_dynamic_library:
+    if extension_suffixes:
         data['abi']['extension_suffix'] = sysconfig.get_config_var('EXT_SUFFIX')
 
-        # EXTENSION_SUFFIXES has been constant for a long time, and currently we
-        # don't have a better information source to find the stable ABI suffix.
-        for suffix in importlib.machinery.EXTENSION_SUFFIXES:
+        for suffix in extension_suffixes:
             if suffix.startswith('.abi'):
                 data['abi']['stable_abi_suffix'] = suffix
                 break
 
+    if has_dynamic_library:
         data['libpython']['dynamic'] = os.path.join(LIBDIR, LDLIBRARY)
         # FIXME: Not sure if windows has a different dll for the stable ABI, and
         #        even if it does, currently we don't have a way to get its name.
