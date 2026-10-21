@@ -21,5 +21,41 @@
       "license-file": "COPYRIGHT.txt",
       "purl": "pkg:generic/mpdecimal@4.0.1"
     }
+  },
+  "native-builds": {
+    "libffi": {
+      "source": "libffi-3.4.6",
+      "role": "target-library",
+      "configure": [
+        "--disable-shared",
+        "--enable-static",
+        "--with-pic",
+        "--disable-docs",
+        "--disable-multi-os-directory"
+      ],
+      "pkg-config": "libffi",
+      "module": "_ctypes",
+      "expected-files": [
+        "include/ffi.h",
+        "lib/libffi.a",
+        "lib/pkgconfig/libffi.pc"
+      ]
+    },
+    "mpdecimal": {
+      "source": "mpdecimal-4.0.1",
+      "role": "target-library",
+      "configure": [
+        "--disable-shared",
+        "--enable-static",
+        "--disable-cxx"
+      ],
+      "pkg-config": "libmpdec",
+      "module": "_decimal",
+      "expected-files": [
+        "include/mpdecimal.h",
+        "lib/libmpdec.a",
+        "lib/pkgconfig/libmpdec.pc"
+      ]
+    }
   }
 }
