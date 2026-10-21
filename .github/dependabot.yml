@@ -20,18 +20,20 @@ updates:
   - package-ecosystem: "pip"
     directory: "/Tools/"
     schedule:
-      interval: "quarterly"
+      interval: "monthly"
     labels: ["skip issue", "skip news"]
     groups:
       pip:
         patterns: ["*"]
+    ignore:
+      - dependency-name: "pip"  # Updated with the bundled ensurepip wheel.
     cooldown:
       default-days: 14
 
   - package-ecosystem: "npm"
     directory: "/Platforms/emscripten/browser_test/"
     schedule:
-      interval: "quarterly"
+      interval: "monthly"
     labels: ["OS-emscripten", "skip issue", "skip news"]
     groups:
       npm:
@@ -109,11 +111,13 @@ updates:
     target-branch: "3.15"
     directory: "/Tools/"
     schedule:
-      interval: "quarterly"
+      interval: "monthly"
     labels: ["skip issue", "skip news"]
     groups:
       pip:
         patterns: ["*"]
+    ignore:
+      - dependency-name: "pip"  # Updated with the bundled ensurepip wheel.
     cooldown:
       default-days: 14
 
@@ -121,11 +125,13 @@ updates:
     target-branch: "3.14"
     directory: "/Tools/"
     schedule:
-      interval: "quarterly"
+      interval: "monthly"
     labels: ["skip issue", "skip news"]
     groups:
       pip:
         patterns: ["*"]
+    ignore:
+      - dependency-name: "pip"  # Updated with the bundled ensurepip wheel.
     cooldown:
       default-days: 14
 
@@ -135,7 +141,7 @@ updates:
     target-branch: "3.15"
     directory: "/Platforms/emscripten/browser_test/"
     schedule:
-      interval: "quarterly"
+      interval: "monthly"
     labels: ["OS-emscripten", "skip issue", "skip news"]
     groups:
       npm:
@@ -147,10 +153,32 @@ updates:
     target-branch: "3.14"
     directory: "/Platforms/emscripten/browser_test/"
     schedule:
-      interval: "quarterly"
+      interval: "monthly"
     labels: ["OS-emscripten", "skip issue", "skip news"]
     groups:
       npm:
+        patterns: ["*"]
+    cooldown:
+      default-days: 14
+
+  - package-ecosystem: "pip"
+    directory: "/Doc/"
+    schedule:
+      interval: "monthly"
+    labels: ["skip issue", "skip news"]
+    groups:
+      documentation:
+        patterns: ["*"]
+    cooldown:
+      default-days: 14
+
+  - package-ecosystem: "npm"
+    directory: "/.github/dependencies/notification/"
+    schedule:
+      interval: "monthly"
+    labels: ["skip issue", "skip news"]
+    groups:
+      notification:
         patterns: ["*"]
     cooldown:
       default-days: 14

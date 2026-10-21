@@ -1,0 +1,168 @@
+name: CI dependency compatibility
+
+on:
+  schedule:
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  branches:
+    name: Select maintained branches
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.branches.outputs.matrix }}
+    steps:
+      - id: branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          CURRENT_BRANCH: ${{ github.ref_name }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          branches = [{'name': os.environ['CURRENT_BRANCH'], 'sha': os.environ['CURRENT_SHA']}]
+          for branch in ('3.15', '3.14'):
+              if branch == os.environ['CURRENT_BRANCH']:
+                  continue
+              result = subprocess.run(
+                  ['gh', 'api', f'repos/{os.environ["GH_REPO"]}/branches/{branch}', '--jq', '.commit.sha'],
+                  capture_output=True, text=True,
+              )
+              if result.returncode == 0:
+                  branches.append({'name': branch, 'sha': result.stdout.strip()})
+              elif 'HTTP 404' in result.stderr:
+                  print(f'Skipping absent branch {branch}')
+              else:
+                  raise RuntimeError(result.stderr)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              print('matrix=' + json.dumps({'branch': branches}), file=output)
+          PY
+
+  compatibility:
+    name: ${{ matrix.branch.name }} / ${{ matrix.scenario.name }}
+    needs: branches
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        branch: ${{ fromJSON(needs.branches.outputs.matrix).branch }}
+        scenario:
+          - { name: minimum-sphinx, tool: docs, python: '3.12.13' }
+          - { name: latest-docs, tool: docs, python: '3.12.13' }
+          - { name: latest-mypy, tool: mypy, python: '3.15.0' }
+          - { name: latest-hypothesis, tool: hypothesis, python: '3.15.0' }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ matrix.branch.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.scenario.python }}
+      - name: Build the interpreter for Hypothesis
+        if: matrix.scenario.tool == 'hypothesis'
+        run: |
+          sudo ./.github/workflows/posix-deps-apt.sh
+          ./configure --with-pydebug
+          make -j4
+      - name: Create the tool environment
+        env:
+          TOOL: ${{ matrix.scenario.tool }}
+        run: |
+          if [ "$TOOL" = hypothesis ]; then
+            ./python -m venv .venv-canary
+          else
+            python -m venv .venv-canary
+          fi
+          .venv-canary/bin/python -m pip install --no-index --no-deps Lib/ensurepip/_bundled/pip-*.whl
+      - name: Resolve compatible dependency updates
+        env:
+          TOOL: ${{ matrix.scenario.tool }}
+          SCENARIO: ${{ matrix.scenario.name }}
+        run: |
+          CANARY_REQUIREMENTS="$(python - <<'PY'
+          import ast
+          import os
+          from pathlib import Path
+          import re
+          sources = {'docs': 'Doc/requirements.txt', 'mypy': 'Tools/requirements-dev.txt',
+                     'hypothesis': 'Tools/requirements-hypothesis.txt'}
+          source = Path(sources[os.environ['TOOL']])
+          requirements = re.sub(r'(?m)^([A-Za-z0-9_.-]+)==[A-Za-z0-9.+-]+\s*$',
+                                r'\1', source.read_text())
+          if os.environ['SCENARIO'] == 'minimum-sphinx':
+              module = ast.parse(Path('Doc/conf.py').read_text())
+              minimum = next(ast.literal_eval(node.value) for node in module.body
+                             if isinstance(node, ast.Assign)
+                             and any(isinstance(target, ast.Name) and target.id == 'needs_sphinx'
+                                     for target in node.targets))
+              requirements += f'\nsphinx=={minimum}\n'
+          target = source.with_name('.requirements-canary.txt')
+          target.write_text(requirements)
+          print(target)
+          PY
+          )"
+          if [ "$TOOL" = hypothesis ]; then
+            .venv-canary/bin/python -m pip install --upgrade -r "$CANARY_REQUIREMENTS"
+          else
+            .venv-canary/bin/python -m pip install --upgrade --only-binary=:all: -r "$CANARY_REQUIREMENTS"
+          fi
+      - name: Build documentation
+        if: matrix.scenario.tool == 'docs'
+        run: |
+          make -C Doc SPHINXBUILD="$GITHUB_WORKSPACE/.venv-canary/bin/sphinx-build" \
+            BLURB="$GITHUB_WORKSPACE/.venv-canary/bin/blurb" html
+      - name: Run mypy
+        if: matrix.scenario.tool == 'mypy'
+        run: |
+          .venv-canary/bin/python Misc/mypy/make_symlinks.py --symlink
+          for target in Lib/_pyrepl Lib/test/libregrtest Lib/tomllib Tools/build \
+            Tools/cases_generator Tools/check-c-api-docs Tools/clinic Tools/jit Tools/peg_generator; do
+            if [ -f "$target/mypy.ini" ]; then
+              .venv-canary/bin/mypy --config-file "$target/mypy.ini"
+            fi
+          done
+      - name: Run property tests
+        if: matrix.scenario.tool == 'hypothesis'
+        run: |
+          .venv-canary/bin/python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          import sys
+          tests = sorted('.'.join(path.relative_to('Lib/test').with_suffix('').parts)
+                         for path in Path('Lib/test').rglob('test_*.py')
+                         if 'hypothesis_helper' in path.read_text(encoding='utf-8', errors='ignore'))
+          if not tests:
+              raise RuntimeError('No Hypothesis consumers found')
+          subprocess.run([sys.executable, '-m', 'test', '-j4', '--timeout', '900', *tests], check=True)
+          PY
+      - name: Record resolved versions
+        if: always()
+        env:
+          SOURCE_BRANCH: ${{ matrix.branch.name }}
+          SOURCE_SHA: ${{ matrix.branch.sha }}
+        run: |
+          printf 'Branch: %s\nCommit: %s\n' "$SOURCE_BRANCH" "$SOURCE_SHA" > dependency-versions.txt
+          if [ -x .venv-canary/bin/python ]; then
+            .venv-canary/bin/python --version >> dependency-versions.txt
+            .venv-canary/bin/python -m pip freeze --all >> dependency-versions.txt
+          fi
+          cat dependency-versions.txt >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: dependency-versions-${{ matrix.branch.sha }}-${{ matrix.scenario.name }}
+          path: dependency-versions.txt
