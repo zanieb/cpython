@@ -1,0 +1,2 @@
+Add a ``--no-tests`` option to ``PCbuild/build.bat`` to skip building test
+projects, and honor the ``IncludeTests`` environment variable.

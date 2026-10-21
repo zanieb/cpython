@@ -104,6 +104,10 @@ By default, build.bat will build Python in Release configuration for
 the 32-bit Win32 platform.  It accepts several arguments to change
 this behavior, try `build.bat -h` to learn more.
 
+Pass `--no-tests` to skip building test projects, such as `_testcapi`
+and `_testembed`. This sets the `IncludeTests` environment variable to `false`,
+which `pcbuild.proj` reads as an MSBuild property.
+
 
 C Runtime
 ---------
