@@ -3330,7 +3330,7 @@ clobber: clean
 	-rm -rf $(PYTHONFRAMEWORKDIR)
 	-rm -rf Platforms/Apple/iOS/Frameworks
 	-rm -rf iOSTestbed.*
-	-rm -f python-config.py python-config
+	-rm -f python-config.py python-config python-for-build
 	-rm -rf cross-build
 
 # Make things extra clean, before making a distribution:
@@ -3423,6 +3423,12 @@ update-config:
 # Dependencies
 
 Python/thread.o: @THREADHEADERS@ $(srcdir)/Python/condvar.h
+
+.PHONY: write-python-for-build
+write-python-for-build: $(PYTHON_FOR_BUILD_DEPS) pybuilddir.txt
+	@printf '%s\n' '#!/bin/sh' 'CDPATH= cd -- "$$(dirname -- "$$0")" || exit' \
+	    'exec env $(RUNSHARED) $(PYTHON_FOR_BUILD) "$$@"' > python-for-build
+	@chmod +x python-for-build
 
 ##########################################################################
 # Module dependencies and platform-specific files
