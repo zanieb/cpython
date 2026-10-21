@@ -13,7 +13,6 @@ import sysconfig
 import tempfile
 from pathlib import Path
 from textwrap import dedent
-from urllib.request import urlopen
 
 import tomllib
 
@@ -26,6 +25,12 @@ except ImportError:
 EMSCRIPTEN_DIR = Path(__file__).parent
 CHECKOUT = EMSCRIPTEN_DIR.parent.parent
 CONFIG_FILE = EMSCRIPTEN_DIR / "config.toml"
+
+sys.path.insert(0, str(CHECKOUT / "Tools" / "build"))
+try:
+    from native_deps import extract_source, fetch_source, load_manifest
+finally:
+    sys.path.pop(0)
 
 DEFAULT_CROSS_BUILD_DIR = CHECKOUT / "cross-build"
 HOST_TRIPLE = "wasm32-emscripten"
@@ -296,22 +301,20 @@ def pythoninfo_build_python(context, working_dir):
     call(["make", "pythoninfo"], quiet=context.quiet)
 
 
-def check_shasum(file: str, expected_shasum: str):
-    with open(file, "rb") as f:
-        digest = hashlib.file_digest(f, "sha256")
-    if digest.hexdigest() != expected_shasum:
-        raise RuntimeError(f"Unexpected shasum for {file}")
+def dependency_config(name):
+    source_id = load_config_toml()["dependencies"][name]
+    source = load_manifest()["sources"][source_id]
+    return {
+        **source,
+        "source-id": source_id,
+        "emscripten-version": required_emscripten_version(),
+        "recipe-sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+    }
 
 
-def download_and_unpack(working_dir: Path, url: str, expected_shasum: str):
-    with tempfile.NamedTemporaryFile(
-        suffix=".tar.gz", delete_on_close=False
-    ) as tmp_file:
-        with urlopen(url) as response:
-            shutil.copyfileobj(response, tmp_file)
-        tmp_file.close()
-        check_shasum(tmp_file.name, expected_shasum)
-        shutil.unpack_archive(tmp_file.name, working_dir)
+def download_and_unpack(working_dir: Path, source):
+    archive = fetch_source(source, working_dir / "downloads")
+    extract_source(archive, working_dir, source)
 
 
 def should_build_library(prefix, name, config, quiet):
@@ -356,7 +359,7 @@ def write_library_config(prefix, name, config, quiet):
 def make_emscripten_libffi(context, working_dir):
     validate_emsdk_version(context.emsdk_cache)
     prefix = context.build_paths["prefix_dir"]
-    libffi_config = load_config_toml()["dependencies"]["libffi"]
+    libffi_config = dependency_config("libffi")
     with open(EMSCRIPTEN_DIR / "make_libffi.sh", "rb") as f:
         libffi_config["make_libffi_shasum"] = hashlib.file_digest(f, "sha256").hexdigest()
     if not should_build_library(
@@ -368,16 +371,10 @@ def make_emscripten_libffi(context, working_dir):
         print("libffi out of date, expected to be up to date", file=sys.stderr)
         sys.exit(1)
 
-    url = libffi_config["url"]
     version = libffi_config["version"]
-    shasum = libffi_config["shasum"]
     libffi_dir = working_dir / f"libffi-{version}"
     shutil.rmtree(libffi_dir, ignore_errors=True)
-    download_and_unpack(
-        working_dir,
-        url.format(version=version),
-        shasum,
-    )
+    download_and_unpack(working_dir, libffi_config)
     call(
         [EMSCRIPTEN_DIR / "make_libffi.sh"],
         env=updated_env({"PREFIX": prefix}, context.emsdk_cache),
@@ -391,7 +388,7 @@ def make_emscripten_libffi(context, working_dir):
 def make_mpdec(context, working_dir):
     validate_emsdk_version(context.emsdk_cache)
     prefix = context.build_paths["prefix_dir"]
-    mpdec_config = load_config_toml()["dependencies"]["mpdec"]
+    mpdec_config = dependency_config("mpdec")
     if not should_build_library(prefix, "mpdec", mpdec_config, context.quiet):
         return
 
@@ -399,16 +396,10 @@ def make_mpdec(context, working_dir):
         print("libmpdec out of date, expected to be up to date", file=sys.stderr)
         sys.exit(1)
 
-    url = mpdec_config["url"]
     version = mpdec_config["version"]
-    shasum = mpdec_config["shasum"]
     mpdec_dir = working_dir / f"mpdecimal-{version}"
     shutil.rmtree(mpdec_dir, ignore_errors=True)
-    download_and_unpack(
-        working_dir,
-        url.format(version=version),
-        shasum,
-    )
+    download_and_unpack(working_dir, mpdec_config)
     call(
         [
             "emconfigure",

@@ -31,7 +31,13 @@ jobs:
         config = tomllib.loads(Path("Platforms/emscripten/config.toml").read_text())
         h = hashlib.sha256()
         h.update(json.dumps(config["dependencies"], sort_keys=True).encode())
-        h.update(Path("Platforms/emscripten/make_libffi.sh").read_bytes())
+        for path in (
+            "Platforms/emscripten/make_libffi.sh",
+            "Platforms/emscripten/__main__.py",
+            "Tools/build/dependencies.json",
+            "Tools/build/native_deps.py",
+        ):
+            h.update(Path(path).read_bytes())
         h.update(b'1') # Update to explicitly bust cache
         emsdk_cache = Path(os.environ["RUNNER_TEMP"]) / "emsdk-cache"
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:
@@ -49,8 +55,8 @@ jobs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ env.EMSDK_CACHE }}
-        key: emsdk-${{ steps.emscripten-config.outputs.emscripten-version }}-${{ steps.emscripten-config.outputs.deps-hash }}
-        restore-keys: emsdk-${{ steps.emscripten-config.outputs.emscripten-version }}
+        key: emsdk-${{ runner.os }}-${{ runner.arch }}-${{ steps.emscripten-config.outputs.emscripten-version }}-${{ steps.emscripten-config.outputs.deps-hash }}
+        restore-keys: emsdk-${{ runner.os }}-${{ runner.arch }}-${{ steps.emscripten-config.outputs.emscripten-version }}-
     - name: "Install Python"
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:

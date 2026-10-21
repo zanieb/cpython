@@ -1,5 +1,5 @@
 #!/bin/bash
-set +e
+set -eu
 
 export CFLAGS="-O2 -fPIC -DWASM_BIGINT"
 export CXXFLAGS="$CFLAGS"
