@@ -24,6 +24,7 @@ MODBUILT_NAMES=    _MODBUILT_NAMES_
 MODSHARED_NAMES=   _MODSHARED_NAMES_
 MODDISABLED_NAMES= _MODDISABLED_NAMES_
 MODOBJS=           _MODOBJS_
+MODCOMPILE_OBJS=   _MODCOMPILE_OBJS_
 MODLIBS=           _MODLIBS_
 
 # === Variables set by configure
@@ -132,6 +133,7 @@ PY_CORE_EXE_LDFLAGS:= $(if $(CONFIGURE_EXE_LDFLAGS), $(CONFIGURE_EXE_LDFLAGS) $(
 CFLAGS_ALIASING=@CFLAGS_ALIASING@
 # Compilation flags only for ceval.c.
 CFLAGS_CEVAL=@CFLAGS_CEVAL@
+C_DEPENDENCY_FLAGS=@C_DEPENDENCY_FLAGS@
 
 
 # Machine-dependent subdirectories
@@ -1448,21 +1450,39 @@ PYTHON_HEADERS= \
 		\
 		$(srcdir)/Python/stdlib_module_names.h
 
+ifneq ($(C_DEPENDENCY_FLAGS),)
+# Generated headers must exist before the first compilation creates dependencies.
+PYTHON_HEADERS= pyconfig.h $(DTRACE_HEADERS)
+C_DEPENDENCY_OBJS= $(filter-out $(JIT_OBJS),$(LIBRARY_OBJS)) \
+	$(MODCOMPILE_OBJS) $(LIBEXPAT_OBJS) $(LIBHACL_HMAC_OBJS) \
+	Programs/python.o Programs/_testembed.o Programs/_bootstrap_python.o \
+	Programs/_freeze_module.o Modules/getpath_noop.o
+C_DEPENDENCY_FILES:= $(wildcard $(addsuffix .d,$(C_DEPENDENCY_OBJS)))
+-include $(C_DEPENDENCY_FILES)
+
+# Rebuild tracked objects that are missing dependency files.
+C_DEPENDENCY_MISSING:= $(filter-out $(C_DEPENDENCY_FILES:.d=),$(wildcard $(C_DEPENDENCY_OBJS)))
+ifneq ($(C_DEPENDENCY_MISSING),)
+.PHONY: missing-dependency-files
+$(C_DEPENDENCY_MISSING): missing-dependency-files
+endif
+endif
+
 ##########################################################################
 # Build static libexpat.a
 LIBEXPAT_CFLAGS=@LIBEXPAT_CFLAGS@ $(PY_STDMODULE_CFLAGS) $(CCSHARED)
 
 Modules/expat/xcs.o: $(srcdir)/Modules/expat/xcs.c $(LIBEXPAT_HEADERS) $(PYTHON_HEADERS)
-	$(CC) -c $(LIBEXPAT_CFLAGS) -o $@ $(srcdir)/Modules/expat/xcs.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBEXPAT_CFLAGS) -o $@ $(srcdir)/Modules/expat/xcs.c
 
 Modules/expat/xmlparse.o: $(srcdir)/Modules/expat/xmlparse.c $(LIBEXPAT_HEADERS) $(PYTHON_HEADERS)
-	$(CC) -c $(LIBEXPAT_CFLAGS) -o $@ $(srcdir)/Modules/expat/xmlparse.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBEXPAT_CFLAGS) -o $@ $(srcdir)/Modules/expat/xmlparse.c
 
 Modules/expat/xmlrole.o: $(srcdir)/Modules/expat/xmlrole.c $(LIBEXPAT_HEADERS) $(PYTHON_HEADERS)
-	$(CC) -c $(LIBEXPAT_CFLAGS) -o $@ $(srcdir)/Modules/expat/xmlrole.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBEXPAT_CFLAGS) -o $@ $(srcdir)/Modules/expat/xmlrole.c
 
 Modules/expat/xmltok.o: $(srcdir)/Modules/expat/xmltok.c $(LIBEXPAT_HEADERS) $(PYTHON_HEADERS)
-	$(CC) -c $(LIBEXPAT_CFLAGS) -o $@ $(srcdir)/Modules/expat/xmltok.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBEXPAT_CFLAGS) -o $@ $(srcdir)/Modules/expat/xmltok.c
 
 $(LIBEXPAT_A): $(LIBEXPAT_OBJS)
 	-rm -f $@
@@ -1482,44 +1502,44 @@ $(LIBEXPAT_A): $(LIBEXPAT_OBJS)
 # For WASI, static linking is needed and HACL* is statically linked instead.
 
 Modules/_hacl/Lib_Memzero0.o: $(srcdir)/Modules/_hacl/Lib_Memzero0.c $(LIBHACL_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Lib_Memzero0.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Lib_Memzero0.c
 
 Modules/_hacl/Hacl_Hash_MD5.o: $(srcdir)/Modules/_hacl/Hacl_Hash_MD5.c $(LIBHACL_MD5_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_MD5.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_MD5.c
 $(LIBHACL_MD5_LIB_STATIC): $(LIBHACL_MD5_OBJS)
 	-rm -f $@
 	$(AR) $(ARFLAGS) $@ $(LIBHACL_MD5_OBJS)
 
 Modules/_hacl/Hacl_Hash_SHA1.o: $(srcdir)/Modules/_hacl/Hacl_Hash_SHA1.c $(LIBHACL_SHA1_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_SHA1.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_SHA1.c
 $(LIBHACL_SHA1_LIB_STATIC): $(LIBHACL_SHA1_OBJS)
 	-rm -f $@
 	$(AR) $(ARFLAGS) $@ $(LIBHACL_SHA1_OBJS)
 
 Modules/_hacl/Hacl_Hash_SHA2.o: $(srcdir)/Modules/_hacl/Hacl_Hash_SHA2.c $(LIBHACL_SHA2_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_SHA2.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_SHA2.c
 $(LIBHACL_SHA2_LIB_STATIC): $(LIBHACL_SHA2_OBJS)
 	-rm -f $@
 	$(AR) $(ARFLAGS) $@ $(LIBHACL_SHA2_OBJS)
 
 Modules/_hacl/Hacl_Hash_SHA3.o: $(srcdir)/Modules/_hacl/Hacl_Hash_SHA3.c $(LIBHACL_SHA3_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_SHA3.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_SHA3.c
 $(LIBHACL_SHA3_LIB_STATIC): $(LIBHACL_SHA3_OBJS)
 	-rm -f $@
 	$(AR) $(ARFLAGS) $@ $(LIBHACL_SHA3_OBJS)
 
 Modules/_hacl/Hacl_Hash_Blake2s.o: $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2s.c $(LIBHACL_BLAKE2_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2s.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2s.c
 Modules/_hacl/Hacl_Hash_Blake2b.o: $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2b.c $(LIBHACL_BLAKE2_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2b.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2b.c
 Modules/_hacl/Hacl_Hash_Blake2s_Simd128.o: $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2s_Simd128.c $(LIBHACL_BLAKE2_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) $(LIBHACL_BLAKE2_SIMD128_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2s_Simd128.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) $(LIBHACL_BLAKE2_SIMD128_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2s_Simd128.c
 Modules/_hacl/Hacl_Hash_Blake2s_Simd128_universal2.o: $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2s_Simd128_universal2.c $(LIBHACL_BLAKE2_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) $(LIBHACL_BLAKE2_SIMD128_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2s_Simd128_universal2.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) $(LIBHACL_BLAKE2_SIMD128_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2s_Simd128_universal2.c
 Modules/_hacl/Hacl_Hash_Blake2b_Simd256.o: $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2b_Simd256.c $(LIBHACL_BLAKE2_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) $(LIBHACL_BLAKE2_SIMD256_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2b_Simd256.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) $(LIBHACL_BLAKE2_SIMD256_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2b_Simd256.c
 Modules/_hacl/Hacl_Hash_Blake2b_Simd256_universal2.o: $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2b_Simd256_universal2.c $(LIBHACL_BLAKE2_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) $(LIBHACL_BLAKE2_SIMD256_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2b_Simd256_universal2.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) $(LIBHACL_BLAKE2_SIMD256_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Hash_Blake2b_Simd256_universal2.c
 $(LIBHACL_BLAKE2_LIB_STATIC): $(LIBHACL_BLAKE2_OBJS)
 	-rm -f $@
 	$(AR) $(ARFLAGS) $@ $(LIBHACL_BLAKE2_OBJS)
@@ -1527,9 +1547,9 @@ $(LIBHACL_BLAKE2_LIB_STATIC): $(LIBHACL_BLAKE2_OBJS)
 # Other HACL* cryptographic primitives
 
 Modules/_hacl/Hacl_HMAC.o: $(srcdir)/Modules/_hacl/Hacl_HMAC.c $(LIBHACL_HMAC_HEADERS)
-	$(CC) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_HMAC.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_HMAC.c
 Modules/_hacl/Hacl_Streaming_HMAC.o: $(srcdir)/Modules/_hacl/Hacl_Streaming_HMAC.c $(LIBHACL_HMAC_HEADERS)
-	$(CC) -Wno-unused-variable -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Streaming_HMAC.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -Wno-unused-variable -c $(LIBHACL_CFLAGS) -o $@ $(srcdir)/Modules/_hacl/Hacl_Streaming_HMAC.c
 $(LIBHACL_HMAC_LIB_STATIC): $(LIBHACL_HMAC_OBJS)
 	-rm -f $@
 	$(AR) $(ARFLAGS) $@ $(LIBHACL_HMAC_OBJS)
@@ -1879,14 +1899,14 @@ Modules/getbuildinfo.o: $(PARSER_OBJS) \
 		$(MODOBJS) \
 		$(DTRACE_OBJS) \
 		$(srcdir)/Modules/getbuildinfo.c
-	$(CC) -c $(PY_CORE_CFLAGS) \
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) \
 	      -DGITVERSION="\"`LC_ALL=C $(GITVERSION)`\"" \
 	      -DGITTAG="\"`LC_ALL=C $(GITTAG)`\"" \
 	      -DGITBRANCH="\"`LC_ALL=C $(GITBRANCH)`\"" \
 	      -o $@ $(srcdir)/Modules/getbuildinfo.c
 
 Modules/getpath.o: $(srcdir)/Modules/getpath.c Python/frozen_modules/getpath.h Makefile $(PYTHON_HEADERS)
-	$(CC) -c $(PY_CORE_CFLAGS) -DPYTHONPATH='"$(PYTHONPATH)"' \
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -DPYTHONPATH='"$(PYTHONPATH)"' \
 		-DPREFIX='"$(host_prefix)"' \
 		-DEXEC_PREFIX='"$(host_exec_prefix)"' \
 		-DVERSION='"$(VERSION)"' \
@@ -1896,10 +1916,10 @@ Modules/getpath.o: $(srcdir)/Modules/getpath.c Python/frozen_modules/getpath.h M
 		-o $@ $(srcdir)/Modules/getpath.c
 
 Programs/python.o: $(srcdir)/Programs/python.c
-	$(CC) -c $(PY_CORE_CFLAGS) -o $@ $(srcdir)/Programs/python.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -o $@ $(srcdir)/Programs/python.c
 
 Programs/_testembed.o: $(srcdir)/Programs/_testembed.c Programs/test_frozenmain.h $(PYTHON_HEADERS)
-	$(CC) -c $(PY_CORE_CFLAGS) -o $@ $(srcdir)/Programs/_testembed.c
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -o $@ $(srcdir)/Programs/_testembed.c
 
 Modules/_sre/sre.o: $(srcdir)/Modules/_sre/sre.c $(srcdir)/Modules/_sre/sre.h $(srcdir)/Modules/_sre/sre_constants.h $(srcdir)/Modules/_sre/sre_lib.h
 
@@ -1924,17 +1944,17 @@ Python/initconfig.o: $(srcdir)/Python/initconfig.c $(srcdir)/Python/config_commo
 Python/interpconfig.o: $(srcdir)/Python/interpconfig.c $(srcdir)/Python/config_common.h
 
 Python/dynload_shlib.o: $(srcdir)/Python/dynload_shlib.c Makefile
-	$(CC) -c $(PY_CORE_CFLAGS) \
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) \
 		-DSOABI='"$(SOABI)"' \
 		-o $@ $(srcdir)/Python/dynload_shlib.c
 
 Python/dynload_hpux.o: $(srcdir)/Python/dynload_hpux.c Makefile
-	$(CC) -c $(PY_CORE_CFLAGS) \
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) \
 		-DSHLIB_EXT='"$(EXT_SUFFIX)"' \
 		-o $@ $(srcdir)/Python/dynload_hpux.c
 
 Python/sysmodule.o: $(srcdir)/Python/sysmodule.c Makefile $(srcdir)/Include/pydtrace.h
-	$(CC) -c $(PY_CORE_CFLAGS) \
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) \
 		-DABIFLAGS='"$(ABIFLAGS)"' \
 		$(MULTIARCH_CPPFLAGS) \
 		-o $@ $(srcdir)/Python/sysmodule.c
@@ -2034,10 +2054,10 @@ regen-sre:
 Python/compile.o Python/codegen.o Python/symtable.o Python/ast_unparse.o Python/ast.o Python/future.o: $(srcdir)/Include/internal/pycore_ast.h $(srcdir)/Include/internal/pycore_ast.h
 
 Python/getplatform.o: $(srcdir)/Python/getplatform.c
-		$(CC) -c $(PY_CORE_CFLAGS) -DPLATFORM='"$(MACHDEP)"' -o $@ $(srcdir)/Python/getplatform.c
+		$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -DPLATFORM='"$(MACHDEP)"' -o $@ $(srcdir)/Python/getplatform.c
 
 Python/importdl.o: $(srcdir)/Python/importdl.c
-		$(CC) -c $(PY_CORE_CFLAGS) -I$(DLINCLDIR) -o $@ $(srcdir)/Python/importdl.c
+		$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -I$(DLINCLDIR) -o $@ $(srcdir)/Python/importdl.c
 
 Objects/unicodectype.o:	$(srcdir)/Objects/unicodectype.c \
 				$(srcdir)/Objects/unicodetype_db.h
@@ -3133,22 +3153,22 @@ config.status:	$(srcdir)/configure
 .PRECIOUS: config.status $(BUILDPYTHON) Makefile Makefile.pre
 
 Python/asm_trampoline_x86_64.o: $(srcdir)/Python/asm_trampoline_x86_64.S
-	$(CC) -c $(PY_CORE_CFLAGS) -o $@ $<
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -o $@ $<
 
 Python/asm_trampoline_aarch64.o: $(srcdir)/Python/asm_trampoline_aarch64.S
-	$(CC) -c $(PY_CORE_CFLAGS) -o $@ $<
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -o $@ $<
 
 Python/asm_trampoline_riscv64.o: $(srcdir)/Python/asm_trampoline_riscv64.S
-	$(CC) -c $(PY_CORE_CFLAGS) -o $@ $<
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -o $@ $<
 
 # On macOS universal2 builds, $(PY_CORE_CFLAGS) contains "-arch arm64 -arch x86_64",
 # which would produce fat .o files containing both architectures for each .S input.
 # lipo -create then refuses to combine them because they share architectures.
 # Build each per-arch object with a single -arch flag before merging with lipo.
 Python/asm_trampoline_universal2.o: $(srcdir)/Python/asm_trampoline_aarch64.S $(srcdir)/Python/asm_trampoline_x86_64.S
-	$(CC) -c $(filter-out -arch arm64 x86_64,$(PY_CORE_CFLAGS)) -arch arm64 \
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(filter-out -arch arm64 x86_64,$(PY_CORE_CFLAGS)) -arch arm64 \
 		-o Python/asm_trampoline_arm64-apple-darwin.o $(srcdir)/Python/asm_trampoline_aarch64.S
-	$(CC) -c $(filter-out -arch arm64 x86_64,$(PY_CORE_CFLAGS)) -arch x86_64 \
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(filter-out -arch arm64 x86_64,$(PY_CORE_CFLAGS)) -arch x86_64 \
 		-o Python/asm_trampoline_x86_64-apple-darwin.o $(srcdir)/Python/asm_trampoline_x86_64.S
 	lipo -create -output $@ \
 		Python/asm_trampoline_arm64-apple-darwin.o \
@@ -3184,27 +3204,27 @@ jit_shim-universal2-apple-darwin.o: jit_shim-aarch64-apple-darwin.o jit_shim-x86
 	lipo -create -output $@ jit_shim-aarch64-apple-darwin.o jit_shim-x86_64-apple-darwin.o
 
 Python/jit.o: $(srcdir)/Python/jit.c @JIT_STENCILS_H@
-	$(CC) -c $(PY_CORE_CFLAGS) -o $@ $<
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -o $@ $<
 
 Python/jit_unwind.o: $(srcdir)/Python/jit_unwind.c $(JIT_UNWIND_INFO_H)
-	$(CC) -c $(PY_CORE_CFLAGS) -o $@ $<
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -o $@ $<
 
 .PHONY: regen-jit
 regen-jit: $(JIT_TARGETS)
 
 # Some make's put the object file in the current directory
 .c.o:
-	$(CC) -c $(PY_CORE_CFLAGS) -o $@ $<
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) -o $@ $<
 
 # bpo-30104: dtoa.c uses union to cast double to unsigned long[2]. clang 4.0
 # with -O2 or higher and strict aliasing miscompiles the ratio() function
 # causing rounding issues. Compile dtoa.c using -fno-strict-aliasing on clang.
 # https://bugs.llvm.org//show_bug.cgi?id=31928
 Python/dtoa.o: Python/dtoa.c
-	$(CC) -c $(PY_CORE_CFLAGS) $(CFLAGS_ALIASING) -o $@ $<
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) $(CFLAGS_ALIASING) -o $@ $<
 
 Python/ceval.o: Python/ceval.c
-	$(CC) -c $(PY_CORE_CFLAGS) $(CFLAGS_CEVAL) -o $@ $<
+	$(CC) $(C_DEPENDENCY_FLAGS) -c $(PY_CORE_CFLAGS) $(CFLAGS_CEVAL) -o $@ $<
 
 # Run reindent on the library
 .PHONY: reindent
@@ -3273,6 +3293,7 @@ clean-retain-profile: pycremoval
 	# Keep the generated JIT shim objects with the rest of the JIT generated
 	# files: they are regenerated as a group and tracked by .jit-stamp.
 	find . -name '*.[oa]' ! -name 'jit_shim*.o' -exec rm -f {} ';'
+	find . -name '*.o.d' -exec rm -f {} ';'
 	find . -name '*.s[ol]' -exec rm -f {} ';'
 	find . -name '*.so.[0-9]*.[0-9]*' -exec rm -f {} ';'
 	find . -name '*.lto' -exec rm -f {} ';'

@@ -8927,6 +8927,35 @@ AC_SUBST([JIT_SHIM_BUILD_O])
 # substitute multiline block, must come after last PY_STDLIB_MOD()
 AC_SUBST([MODULE_BLOCK])
 
+AC_ARG_ENABLE([dependency-tracking],
+  [AS_HELP_STRING([--disable-dependency-tracking],
+                  [do not use compiler-generated header dependencies])],
+  [], [enable_dependency_tracking=yes])
+AS_CASE([$enable_dependency_tracking],
+  [yes|no], [],
+  [AC_MSG_ERROR([--enable-dependency-tracking accepts yes or no])])
+C_DEPENDENCY_FLAGS=
+AS_IF([test "$enable_dependency_tracking" = yes], [
+  AC_CACHE_CHECK([for compiler-generated header dependencies],
+    [ac_cv_cc_dependencies], [
+    save_CFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS -MMD -MP -MF conftest.d -MQ conftest.o"
+    echo > conftest-deps.h
+    AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+      #include "conftest-deps.h"
+      int main(void) { return 0; }
+    ]])], [
+      AS_IF([test -s conftest.d && grep conftest-deps.h conftest.d >/dev/null],
+        [ac_cv_cc_dependencies=yes], [ac_cv_cc_dependencies=no])
+    ], [ac_cv_cc_dependencies=no])
+    CFLAGS="$save_CFLAGS"
+    rm -f conftest.d conftest-deps.h
+  ])
+  AS_VAR_IF([ac_cv_cc_dependencies], [yes],
+    [C_DEPENDENCY_FLAGS='-MMD -MP -MF "$@.d" -MQ "$@"'])
+])
+AC_SUBST([C_DEPENDENCY_FLAGS])
+
 # generate output files
 AC_CONFIG_FILES(m4_normalize([
   Makefile.pre

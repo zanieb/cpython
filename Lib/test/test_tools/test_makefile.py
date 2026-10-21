@@ -3,9 +3,12 @@ Tests for `Makefile`.
 """
 
 import os
+import shutil
+import subprocess
 import unittest
 from test import support
 import sysconfig
+from sysconfig.__main__ import _parse_makefile
 
 MAKEFILE = sysconfig.get_makefile_filename()
 
@@ -16,6 +19,27 @@ if not os.path.exists(MAKEFILE) or not os.path.isfile(MAKEFILE):
 
 
 class TestMakefile(unittest.TestCase):
+    @support.requires_subprocess()
+    @unittest.skipUnless(sysconfig.is_python_build(), 'requires a source build')
+    def test_internal_header_dependencies(self):
+        config = _parse_makefile(MAKEFILE)
+        if not config.get('C_DEPENDENCY_FLAGS'):
+            self.skipTest('compiler-generated dependencies are disabled')
+        make = shutil.which('gmake') or shutil.which('make')
+        if make is None:
+            self.skipTest('make is not available')
+        header = os.path.join(config['srcdir'], 'Include/internal/pycore_atexit.h')
+        for obj, expected in [('Modules/atexitmodule.o', 1), ('Parser/token.o', 0)]:
+            with self.subTest(object=obj):
+                result = subprocess.run(
+                    [make, '-q', '-W', header, obj],
+                    cwd=config['abs_builddir'],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                )
+                self.assertEqual(result.returncode, expected, result.stderr)
+
     def list_test_dirs(self):
         result = []
         found_testsubdirs = False
