@@ -1,3 +1,0 @@
-Use ``sem_clockwait`` when it is available at runtime on Linux, even
-when Python was built with older libc headers. Timed semaphore waits can
-then use the monotonic clock instead of the system clock.
