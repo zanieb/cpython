@@ -2134,7 +2134,7 @@ case "$ac_cv_cc_name" in
             -output=\"\$(shell pwd)/code.profclangd\"
             \"\$(shell pwd)\"/*.profclangr
     ")
-    LLVM_PROF_FILE="LLVM_PROFILE_FILE=\"\$(shell pwd)/code-%p.profclangr\""
+    LLVM_PROF_FILE="LLVM_PROFILE_FILE=\"\$(shell pwd)/code-%128m.profclangr\""
     if test $LLVM_PROF_FOUND = not-found
     then
       LLVM_PROF_ERR=yes
