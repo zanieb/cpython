@@ -14,6 +14,9 @@ PAPER        =
 SOURCES      =
 DISTVERSION  = $(shell $(PYTHON) tools/extensions/patchlevel.py)
 REQUIREMENTS = pylock.toml
+PIP_REQUIREMENTS = ../Tools/requirements-bootstrap.txt
+BUILD_REQUIREMENTS =
+PIP_OPTIONS =
 SPHINXERRORHANDLING = --fail-on-warning
 
 # Internal variables.
@@ -180,8 +183,11 @@ venv:
 			VIRTUAL_ENV=$(VENVDIR) $(UV) pip install -r $(REQUIREMENTS); \
 		else \
 			$(PYTHON) -m venv $(VENVDIR); \
-			$(VENVDIR)/bin/python3 -m pip install --upgrade pip; \
-			$(VENVDIR)/bin/python3 -m pip install -r $(REQUIREMENTS); \
+			$(VENVDIR)/bin/python3 -m pip install --require-hashes -r $(PIP_REQUIREMENTS); \
+			if [ -n "$(BUILD_REQUIREMENTS)" ]; then \
+				$(VENVDIR)/bin/python3 -m pip install --require-hashes --only-binary=:all: -r $(BUILD_REQUIREMENTS); \
+			fi; \
+			$(VENVDIR)/bin/python3 -m pip install $(PIP_OPTIONS) -r $(REQUIREMENTS); \
 		fi; \
 		echo "The venv has been created in the $(VENVDIR) directory"; \
 	fi

@@ -72,9 +72,11 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version: "3.15"
+          version: "0.12.23"
+          python-version: "3.15.0"
           activate-environment: true
           cache-dependency-glob: Tools/pylock.dev.toml
-      - run: uv pip sync Tools/pylock.dev.toml
+      - run: |
+          uv pip sync --only-binary=:all: Tools/pylock.dev.toml
       - run: python3 Misc/mypy/make_symlinks.py --symlink
       - run: mypy --num-workers 4 --config-file ${{ matrix.target }}/mypy.ini
