@@ -218,20 +218,22 @@ def pythoninfo_build_python(context):
 #
 # If you're a member of the Python core team, and you'd like to be able to push
 # these tags yourself, please contact Malcolm Smith or Russell Keith-Magee.
+DEPENDENCIES = [
+    "bzip2-1.0.8-3",
+    "libffi-3.4.4-3",
+    "openssl-3.5.9-0",
+    "sqlite-3.53.4-0",
+    "xz-5.4.6-1",
+    "zstd-1.5.7-2",
+]
+
+
 def unpack_deps(host, prefix_dir, cache_dir):
-    os.chdir(prefix_dir)
     deps_url = "https://github.com/beeware/cpython-android-source-deps/releases/download"
-    for name_ver in [
-        "bzip2-1.0.8-3",
-        "libffi-3.4.4-3",
-        "openssl-3.5.9-0",
-        "sqlite-3.53.4-0",
-        "xz-5.4.6-1",
-        "zstd-1.5.7-2"
-    ]:
+    for name_ver in DEPENDENCIES:
         filename = f"{name_ver}-{host}.tar.gz"
         out_path = download(f"{deps_url}/{name_ver}/{filename}", cache_dir)
-        shutil.unpack_archive(out_path)
+        shutil.unpack_archive(out_path, prefix_dir)
 
 
 def download(url, cache_dir):
@@ -258,14 +260,23 @@ def configure_host_python(context, host=None):
 
     host_dir = subdir(host, create=True)
     prefix_dir = host_dir / "prefix"
-    if not prefix_dir.exists():
-        prefix_dir.mkdir()
-        cache_dir = (
-            Path(context.cache_dir).resolve()
-            if context.cache_dir
-            else CROSS_BUILD_DIR / "downloads"
-        )
-        unpack_deps(host, prefix_dir, cache_dir)
+    sys.path.insert(0, str(PYTHON_DIR / "Tools" / "build"))
+    try:
+        from dependency_cache import install_prefix
+    finally:
+        sys.path.pop(0)
+
+    cache_dir = (
+        Path(context.cache_dir).resolve()
+        if context.cache_dir
+        else CROSS_BUILD_DIR / "downloads"
+    )
+    install_prefix(
+        prefix_dir,
+        {"target": host, "packages": DEPENDENCIES, "recipe": 1},
+        lambda staging: unpack_deps(host, staging, cache_dir),
+        use_existing=context.use_existing_deps,
+    )
 
     os.chdir(host_dir)
     command = [
@@ -941,6 +952,12 @@ def parse_args():
             "--cache-dir",
             default=os.environ.get("CACHE_DIR"),
             help="The directory to store cached downloads.",
+        )
+
+    for cmd in [configure_host, build, ci]:
+        cmd.add_argument(
+            "--use-existing-deps", action="store_true",
+            help="Use the existing dependency prefix without updating it",
         )
 
     # --clean option

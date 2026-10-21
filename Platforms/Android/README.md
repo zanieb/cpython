@@ -172,3 +172,16 @@ For more details, run `android.py test --help`.
 ## Using in your own app
 
 See https://docs.python.org/3/using/android.html.
+
+### Dependency installations
+
+The build script records the target and dependency versions in the installed
+prefix. It reuses a completed matching installation and rebuilds dependencies
+when those inputs change. A failed download or extraction does not mark the
+replacement complete; the previous installation remains available.
+
+For a prefix created by an older build script, `--clean` removes the relevant
+host build directory and rebuilds it. Alternatively, pass `--use-existing-deps`
+to `configure-host`, `build`, or `ci` to use the existing target prefix without
+updating it. The override requires an existing prefix and does not record it as
+a managed installation.
