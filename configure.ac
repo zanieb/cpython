@@ -769,7 +769,8 @@ AC_ARG_WITH(
 ])
 AC_SUBST([APP_STORE_COMPLIANCE_PATCH])
 
-AC_SUBST([_PYTHON_HOST_PLATFORM])
+AC_ARG_VAR([_PYTHON_HOST_PLATFORM],
+  [override the platform identifier used by sysconfig when cross compiling])
 if test "$cross_compiling" = yes; then
 	case "$host" in
 	*-*-linux*)
@@ -830,7 +831,8 @@ if test "$cross_compiling" = yes; then
 		MACHDEP="unknown"
 		AC_MSG_ERROR([cross build not supported for $host])
 	esac
-	_PYTHON_HOST_PLATFORM="$MACHDEP${_host_ident:+-$_host_ident}"
+	AS_IF([test -z "$_PYTHON_HOST_PLATFORM"],
+	  [_PYTHON_HOST_PLATFORM="$MACHDEP${_host_ident:+-$_host_ident}"])
 fi
 
 # Some systems cannot stand _XOPEN_SOURCE being defined at all; they
