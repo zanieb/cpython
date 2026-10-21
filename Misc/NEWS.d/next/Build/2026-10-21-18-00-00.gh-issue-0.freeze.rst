@@ -1,3 +1,0 @@
-Use the interpreter supplied with :option:`--with-build-python` to freeze
-modules in native builds as well as cross builds. Native builds without this
-option continue to bootstrap their own interpreter.
