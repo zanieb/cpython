@@ -2,9 +2,12 @@ import unittest
 import subprocess
 import sys
 import os
+import shutil
+import textwrap
 from test import support
 from test.support import import_helper
 from test.support import os_helper
+from test.support import script_helper
 
 # Skip this test if the _tkinter module wasn't built.
 _tkinter = import_helper.import_module('_tkinter')
@@ -333,6 +336,48 @@ class TclTest(unittest.TestCase):
                     [unc_name, '-c', 'import tkinter; print(tkinter)'])
 
         self.assertIn(b'tkinter', stdout)
+
+    @unittest.skipIf(sys.platform == "win32", "Unix Tcl layout")
+    def test_library_relative_to_base_prefix(self):
+        library = self.interp.eval("info library")
+        with os_helper.temp_dir() as prefix:
+            bundled = os.path.join(prefix, "lib", "tcl" + _tkinter.TCL_VERSION)
+            shutil.copytree(library, bundled)
+            script = textwrap.dedent("""
+                import os
+                import sys
+                sys.base_prefix = sys.argv[1]
+                before = dict(os.environ)
+                import tkinter
+                interp = tkinter.Tcl()
+                assert os.path.samefile(interp.eval("info library"), sys.argv[2])
+                assert dict(os.environ) == before
+            """)
+            for override in (None, library):
+                with self.subTest(TCL_LIBRARY=override), os_helper.EnvironmentVarGuard() as env:
+                    if override is None:
+                        env.unset("TCL_LIBRARY")
+                    else:
+                        env["TCL_LIBRARY"] = override
+                    expected = bundled if override is None else library
+                    script_helper.assert_python_ok(
+                        "-c", script, prefix, expected)
+
+    @unittest.skipIf(sys.platform == "win32", "Unix Tcl layout")
+    def test_missing_bundled_library_uses_tcl_default(self):
+        library = self.interp.eval("info library")
+        with os_helper.temp_dir() as prefix:
+            script = textwrap.dedent("""
+                import os
+                import sys
+                sys.base_prefix = sys.argv[1]
+                import tkinter
+                interp = tkinter.Tcl()
+                assert os.path.samefile(interp.eval("info library"), sys.argv[2])
+            """)
+            with os_helper.EnvironmentVarGuard() as env:
+                env.unset("TCL_LIBRARY")
+                script_helper.assert_python_ok("-c", script, prefix, library)
 
     def test_exprstring(self):
         tcl = self.interp

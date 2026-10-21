@@ -1,0 +1,3 @@
+On Unix, :mod:`tkinter` searches for bundled Tcl scripts in
+``lib/tcl<version>`` under :data:`sys.base_prefix` when :envvar:`TCL_LIBRARY`
+is not set. This allows a bundled Tcl installation to move with Python.
