@@ -26,9 +26,7 @@ Copyright (C) 1994 Steen Lumholt.
 #endif
 
 #include "Python.h"
-#ifdef MS_WINDOWS
-#  include "pycore_fileutils.h"   // _Py_stat()
-#endif
+#include "pycore_fileutils.h"    // _Py_stat()
 
 #include "pycore_long.h"          // _PyLong_IsNegative()
 #include "pycore_unicodeobject.h" // _PyUnicode_AsUTF8String
@@ -178,6 +176,66 @@ _get_tcl_lib_path(void)
         already_checked = 1;
     }
     return tcl_library_path;
+}
+#else
+static int
+set_tcl_library_path(Tcl_Interp *interp)
+{
+    /* An explicit environment setting takes precedence over bundled Tcl. */
+    if (getenv("TCL_LIBRARY") != NULL) {
+        return 0;
+    }
+
+    PyObject *prefix;
+    if (PySys_GetOptionalAttrString("base_prefix", &prefix) < 0) {
+        return -1;
+    }
+    if (prefix == NULL) {
+        return 0;
+    }
+    PyObject *suffix = PyUnicode_FromString("/lib/tcl" TCL_VERSION);
+    if (suffix == NULL) {
+        Py_DECREF(prefix);
+        return -1;
+    }
+    PyObject *path = PyUnicode_Concat(prefix, suffix);
+    Py_DECREF(prefix);
+    Py_DECREF(suffix);
+    if (path == NULL) {
+        return -1;
+    }
+    PyObject *init_file = PyUnicode_FromFormat("%U/init.tcl", path);
+    if (init_file == NULL) {
+        Py_DECREF(path);
+        return -1;
+    }
+    struct stat stat_buf;
+    int stat_result = _Py_stat(init_file, &stat_buf);
+    Py_DECREF(init_file);
+    if (stat_result == -2) {
+        Py_DECREF(path);
+        return -1;
+    }
+    if (stat_result == -1 || !S_ISREG(stat_buf.st_mode)) {
+        Py_DECREF(path);
+        errno = 0;
+        return 0;
+    }
+
+    const char *utf8_path = PyUnicode_AsUTF8(path);
+    if (utf8_path == NULL) {
+        Py_DECREF(path);
+        return -1;
+    }
+    /* Tcl_Init searches tcl_library before its compiled-in installation path. */
+    const char *result = Tcl_SetVar(interp, "tcl_library", utf8_path,
+                                    TCL_GLOBAL_ONLY);
+    Py_DECREF(path);
+    if (result == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, Tcl_GetStringResult(interp));
+        return -1;
+    }
+    return 0;
 }
 #endif /* MS_WINDOWS */
 
@@ -822,6 +880,11 @@ Tkapp_New(const char *screenName, const char *className,
                 Py_DECREF(utf8_path);
             }
         }
+    }
+#else
+    if (set_tcl_library_path(v->interp) < 0) {
+        Py_DECREF(v);
+        return NULL;
     }
 #endif
 
