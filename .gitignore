@@ -138,6 +138,7 @@ Tools/unicode/data/
 /builddir/
 /.native-deps/
 /.native-sources/
+/native-dependency-artifact/
 /..native-deps.lock
 /compile_commands.json
 /config.cache

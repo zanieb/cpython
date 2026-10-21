@@ -6,6 +6,7 @@ import io
 import json
 import os
 import shlex
+import sys
 from pathlib import Path
 import tarfile
 import tempfile
@@ -166,6 +167,66 @@ class ReportTests(unittest.TestCase):
         self.module.__libmpdec_version__ = "2.5.1"
         report = self.reporter.collect_report(self.prefix)
         self.assertEqual(report["errors"], ["_decimal reports 2.5.1, expected 4.0.1"])
+
+
+class ArtifactTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        spec = importlib.util.spec_from_file_location(
+            "native_deps_artifact", ROOT / "Tools/build/native_deps_artifact.py")
+        cls.artifact = importlib.util.module_from_spec(spec)
+        with patch.object(sys, "path", [str(ROOT / "Tools/build"), *sys.path]):
+            spec.loader.exec_module(cls.artifact)
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.directory = Path(self.tmp.name)
+        self.prefix = self.directory / "prefix"
+        self.prefix.mkdir()
+        self.output = self.directory / "artifact"
+        manifest = deps.load_manifest()
+        recipe = manifest["native-builds"]["libffi"]
+        for filename in [*recipe["expected-files"], "share/licenses/libffi/LICENSE"]:
+            path = self.prefix / filename
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"installed file")
+        self.receipt = {"schema": 1, "inputs": {
+            "recipes": {"libffi": recipe},
+            "sources": {"libffi-3.4.6": manifest["sources"]["libffi-3.4.6"]},
+        }}
+        (self.prefix / ".cpython-dependencies.json").write_text(json.dumps(self.receipt))
+
+    def test_export_records_actual_files_and_selected_sources(self):
+        metadata = self.artifact.export_prefix(self.prefix, self.output)
+        archive = self.output / metadata["archive"]["filename"]
+        self.assertEqual(metadata["archive"]["sha256"], deps.file_digest(archive))
+        with tarfile.open(archive) as tar:
+            for name, info in metadata["files"].items():
+                payload = tar.extractfile(f"prefix/{name}").read()
+                self.assertEqual(info["sha256"], hashlib.sha256(payload).hexdigest())
+        sbom = json.loads((self.output / "native-dependencies.spdx.json").read_text())
+        self.assertEqual([p["name"] for p in sbom["packages"]], ["libffi"])
+        self.assertEqual(metadata["receipt"], self.receipt)
+
+    def test_missing_library_does_not_publish(self):
+        (self.prefix / "lib/libffi.a").unlink()
+        with self.assertRaisesRegex(ValueError, "missing lib/libffi.a"):
+            self.artifact.export_prefix(self.prefix, self.output)
+        self.assertFalse(self.output.exists())
+
+    @unittest.skipIf(os.name == "nt", "Creating symlinks may require privileges")
+    def test_external_symlink_does_not_publish(self):
+        outside = self.directory / "outside"
+        outside.write_bytes(b"unrelated file")
+        (self.prefix / "escape").symlink_to(outside)
+        with self.assertRaisesRegex(ValueError, "escapes its prefix"):
+            self.artifact.export_prefix(self.prefix, self.output)
+        self.assertFalse(self.output.exists())
+
+    def test_output_inside_prefix_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "outside"):
+            self.artifact.export_prefix(self.prefix, self.prefix / "artifact")
 
 
 if __name__ == "__main__":

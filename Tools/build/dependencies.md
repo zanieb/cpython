@@ -93,3 +93,32 @@ the selected source. Other search paths may also be present.
 Older `libffi` versions do not expose a runtime version; their value is `null`.
 The report records configuration evidence, not a full audit of dynamic linking.
 CI uploads it alongside `config.log` and the broader `test.pythoninfo` report.
+
+## Build artifacts and source SBOMs
+
+Export a completed native prefix with its recorded inputs:
+
+```sh
+python3 Tools/build/native_deps_artifact.py \
+    --prefix .native-deps --output native-dependency-artifact
+```
+
+The output directory must not exist. The exporter holds the installation lock,
+requires the selected libraries and license files, and publishes the directory
+only when all three outputs are complete:
+
+* `native-dependencies.tar.gz` contains the prefix, receipt, and license files.
+* `native-dependencies.json` records the archive digest, installed-file digests,
+  symlink targets, and the receipt's source, recipe, and tool metadata.
+* `native-dependencies.spdx.json` is an SPDX 2.3 document describing the source
+  packages selected by the receipt, including source digests, declared licenses,
+  download URLs, and package URLs.
+
+The native CI job uploads these outputs for inspection. Archive members have a
+relative `prefix/` root, but the receipt records the original absolute prefix
+and installed files may embed that path. The prefix is not relocatable. Its compiler, platform,
+and architecture are recorded inputs, not a guarantee of compatibility with
+another machine. The SPDX document describes the selected sources; it does not
+claim to inventory the entire interpreter or its system libraries. These exports
+are unsigned build records, not release attestations. Official installers still
+use their existing dependency packaging and SBOM processes.
