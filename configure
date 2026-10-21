@@ -1997,8 +1997,9 @@ Optional Packages:
                           and rest of CPython
   --with-remote-debug     enable remote debugging support (default is yes)
   --with-ensurepip[=install|upgrade|no]
-                          "install" or "upgrade" using bundled pip (default is
-                          upgrade)
+                          run ensurepip during installation (default: upgrade;
+                          no on Emscripten, WASI, and iOS); "no" still
+                          installs the ensurepip module
   --with-openssl=DIR      root of the OpenSSL directory
   --with-openssl-rpath=[DIR|auto|no]
                           Set runtime library directory (rpath) for OpenSSL
