@@ -1,0 +1,3 @@
+Find the standard library relative to Unix runtime libraries installed
+under ``lib``. On Linux, use the mapped runtime filename to locate relocated
+installations, including executables linked with a static ``libpython``.

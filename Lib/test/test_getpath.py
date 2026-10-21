@@ -907,6 +907,31 @@ class MockGetPathTests(unittest.TestCase):
         actual = getpath(ns, expected)
         self.assertEqual(expected, actual)
 
+    def test_stdlib_relative_to_runtime_library(self):
+        for os_name in ("posix", "darwin"):
+            for library in ("/relocated/lib/libpython9.8.so",
+                            "/relocated/bin/python",
+                            "/relocated/Python"):
+                with self.subTest(os_name=os_name, library=library):
+                    ns = MockPosixNamespace(
+                        os_name=os_name,
+                        PREFIX="/original",
+                        EXEC_PREFIX="/original",
+                        argv0="/unrelated/launcher",
+                        real_executable="/unrelated/launcher",
+                        library=library,
+                    )
+                    ns.add_known_xfile("/unrelated/launcher")
+                    ns.add_known_file(library)
+                    ns.add_known_file("/relocated/lib/python9.8/os.py")
+                    ns.add_known_dir("/relocated/lib/python9.8/lib-dynload")
+                    expected = dict(
+                        prefix="/relocated",
+                        exec_prefix="/relocated",
+                        stdlib_dir="/relocated/lib/python9.8",
+                    )
+                    self.assertEqual(expected, getpath(ns, expected))
+
     def test_explicitly_set_stdlib_dir(self):
         """Test the explicitly set stdlib_dir in the config is respected."""
         ns = MockPosixNamespace(

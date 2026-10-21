@@ -10,6 +10,9 @@
 #include "marshal.h"              // PyMarshal_ReadObjectFromString
 #include "osdefs.h"               // DELIM
 #include <wchar.h>
+#ifdef __linux__
+#  include <inttypes.h>             // SCNxPTR
+#endif
 
 #ifdef MS_WINDOWS
 #  include <windows.h>            // GetFullPathNameW(), MAX_PATH
@@ -845,32 +848,83 @@ progname_to_dict(PyObject *dict, const char *key)
 }
 
 
-/* Add the runtime library's path to the dict */
+#ifdef __linux__
+/* The dynamic loader may return a relative or symlinked filename. Procfs
+   identifies the mapped file even after the process changes directory. */
+static int
+library_from_proc_maps(PyObject *dict, const char *key, uintptr_t address)
+{
+    FILE *maps = fopen("/proc/self/maps", "r");
+    if (maps == NULL) {
+        return 0;
+    }
+    char line[MAXPATHLEN + 128];
+    while (fgets(line, sizeof(line), maps) != NULL) {
+        uintptr_t low, high;
+        int offset = 0;
+        if (sscanf(line, "%" SCNxPTR "-%" SCNxPTR " %*s %*s %*s %*s %n",
+                   &low, &high, &offset) != 2 || offset == 0) {
+            continue;
+        }
+        if (address < low || address >= high) {
+            continue;
+        }
+        char *filename = line + offset;
+        char *newline = strchr(filename, '\n');
+        if (filename[0] != '/' || newline == NULL) {
+            break;
+        }
+        *newline = '\0';
+        /* Procfs escapes newlines ambiguously. Let dladdr handle those names. */
+        if (strstr(filename, "\\012") != NULL) {
+            break;
+        }
+        fclose(maps);
+        return decode_to_dict(dict, key, filename) ? 1 : -1;
+    }
+    fclose(maps);
+    return 0;
+}
+#endif
+
+
+/* Add the runtime library's path to the dict. Static Unix builds can locate
+   their installation through the executable that contains this function. */
 static int
 library_to_dict(PyObject *dict, const char *key)
 {
-/* macOS framework builds do not link against a libpython dynamic library, but
-   instead link against a macOS Framework. */
-#if defined(Py_ENABLE_SHARED) || defined(WITH_NEXT_FRAMEWORK)
-
 #ifdef MS_WINDOWS
+#  if defined(Py_ENABLE_SHARED)
     extern HMODULE PyWin_DLLhModule;
     if (PyWin_DLLhModule) {
         return winmodule_to_dict(dict, key, PyWin_DLLhModule);
     }
-#endif
-
-#if HAVE_DLADDR
+#  endif
+#else
+#  ifdef __linux__
+    int result = library_from_proc_maps(dict, key, (uintptr_t)&library_to_dict);
+    if (result != 0) {
+        return result > 0;
+    }
+#  endif
+#  if HAVE_DLADDR
     Dl_info libpython_info;
-    if (dladdr(&Py_Initialize, &libpython_info) && libpython_info.dli_fname) {
+    /* A local function address cannot resolve to an external PLT entry. */
+    if (dladdr((void *)&library_to_dict, &libpython_info)
+            && libpython_info.dli_fname) {
+#    ifdef HAVE_REALPATH
+        char resolved[MAXPATHLEN];
+        if (realpath(libpython_info.dli_fname, resolved) != NULL) {
+            return decode_to_dict(dict, key, resolved);
+        }
+#    endif
         return decode_to_dict(dict, key, libpython_info.dli_fname);
     }
-#endif
+#  endif
 #endif
 
     return PyDict_SetItemString(dict, key, Py_None) == 0;
 }
-
 
 PyObject *
 _Py_Get_Getpath_CodeObject(void)
