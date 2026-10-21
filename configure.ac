@@ -7920,7 +7920,7 @@ fi
 AC_MSG_CHECKING([for ensurepip])
 AC_ARG_WITH([ensurepip],
     [AS_HELP_STRING([--with-ensurepip@<:@=install|upgrade|no@:>@],
-        ["install" or "upgrade" using bundled pip (default is upgrade)])],
+        [run ensurepip during installation (default: upgrade; no on Emscripten, WASI, and iOS); "no" still installs the ensurepip module])],
     [],
     [
       AS_CASE([$ac_sys_system],

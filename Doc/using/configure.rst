@@ -677,10 +677,15 @@ Install Options
 
    Select the :mod:`ensurepip` command run on Python installation:
 
-   * ``upgrade`` (default): run ``python -m ensurepip --altinstall --upgrade``
-     command.
-   * ``install``: run ``python -m ensurepip --altinstall`` command;
-   * ``no``: don't run ensurepip;
+   * ``upgrade``: run ``ensurepip`` with ``--upgrade``;
+   * ``install``: run ``ensurepip`` without ``--upgrade``;
+   * ``no``: do not run ``ensurepip``.
+
+   When ``make altinstall`` runs ``ensurepip``, it also passes ``--altinstall``.
+
+   The default is ``no`` on Emscripten, WASI, and iOS, and ``upgrade`` on
+   other platforms. The :mod:`ensurepip` module is installed regardless of
+   this option.
 
    .. versionadded:: 3.6
 
