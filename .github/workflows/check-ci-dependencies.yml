@@ -1,0 +1,68 @@
+name: Check CI dependencies
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - '.github/dependencies/**'
+      - 'Doc/requirements*.txt'
+      - 'Doc/constraints.txt'
+      - 'Doc/pylock*.toml'
+      - 'Tools/requirements*'
+      - 'Tools/pylock*.toml'
+      - 'Tools/build/check_ci_dependencies.py'
+      - 'Tools/build/ci-dependency-inputs.json'
+      - 'Lib/ensurepip/**'
+  push:
+    branches: [main, '3.*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  locks:
+    name: Check lock inputs and installer pins
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12.13'
+      - run: python Tools/build/check_ci_dependencies.py
+
+  notification:
+    name: Check notification dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: hashFiles('.github/dependencies/notification/package-lock.json') != ''
+        with:
+          node-version: '22.23.3'
+      - run: npm ci --ignore-scripts
+        if: hashFiles('.github/dependencies/notification/package-lock.json') != ''
+        working-directory: .github/dependencies/notification
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        if: hashFiles('.github/dependencies/notification/package-lock.json') != ''
+        with:
+          script: |
+            const {createRequire} = require('node:module');
+            const {join} = require('node:path');
+            const notificationRequire = createRequire(join(
+              process.env.GITHUB_WORKSPACE,
+              '.github/dependencies/notification/package.json',
+            ));
+            const Mailgun = notificationRequire('mailgun.js');
+            const FormData = notificationRequire('form-data');
+            new Mailgun(FormData).client({username: 'api', key: 'dependency-check'});

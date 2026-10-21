@@ -1,0 +1,33 @@
+{
+  "Doc/pylock.epubcheck.toml": {
+    "inputs": {
+      "Doc/requirements-epubcheck.txt": "93cd38a16660545f45b21ea80bb20a6185b5a6e6955ea8562ec2f0bfb0426ed1"
+    },
+    "sha256": "44c83525451a69e47f349cd28a1cb71aa8c25f3c23a221559570a46d33c39736"
+  },
+  "Doc/pylock.toml": {
+    "inputs": {
+      "Doc/constraints.txt": "3bd957ed4c7d14803827c5e53f5909b65a170373bebf4547e96bc28fda7bdd5e",
+      "Doc/requirements.txt": "1000ac5e5b226b5a00b5451a7d6c8753fbcf788a117cadd3ca3724fdbfa9cb0c"
+    },
+    "sha256": "edd9c69297085651960586846fe1c383bc9dd21a9b1ce5de2e4de412be305108"
+  },
+  "Tools/pylock.dev.toml": {
+    "inputs": {
+      "Tools/requirements-dev.txt": "8e309e57aa7f82fde03f0364c9a33d4eb2a9c28cc966aee7e082b8ae8cd3ec62"
+    },
+    "sha256": "a2f3f4da39ea9c94d387f90b7224ac864c641bd2232f91be723d9129cd94c346"
+  },
+  "Tools/pylock.hypothesis.toml": {
+    "inputs": {
+      "Tools/requirements-hypothesis.txt": "8a6ddd83e9c280575c22c2a1947094ac41d5a340442fbcaeeea26ce58ee63aa6"
+    },
+    "sha256": "5d94d4370ee05f1fb19156e1e8a977a647edff91f6262fbcafc16f5145ede8ea"
+  },
+  "Tools/requirements-build.txt": {
+    "inputs": {
+      "Tools/requirements-build.in": "fb0eb4e82e66c147535b1bbce19384802662289ddf18e5c1613524eb6a2e432c"
+    },
+    "sha256": "bc8b7ac8b79ca4238bd9920e51ce8118feb92a20805b0e548805f0be8f3545cd"
+  }
+}

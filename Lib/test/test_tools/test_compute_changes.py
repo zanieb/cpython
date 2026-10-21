@@ -60,6 +60,56 @@ class TestProcessChangedFiles(unittest.TestCase):
                     self.assertTrue(result.run_ci_fuzz_stdlib)
                     self.assertTrue(is_fuzzable_library_file(f))
 
+    def test_homebrew_dependencies(self):
+        result = process_changed_files({Path("Misc/Brewfile")})
+        self.assertEqual(result, Outputs(run_tests=True, run_macos=True))
+
+    def test_shared_python_dependencies(self):
+        for name in ("bootstrap.txt", "build.in", "build.txt"):
+            with self.subTest(name=name):
+                result = process_changed_files({Path(f"Tools/requirements-{name}")})
+                self.assertEqual(result, Outputs(
+                    run_tests=True, run_ubuntu=True, run_docs=True,
+                ))
+
+    def test_hypothesis_dependencies(self):
+        for name in ("requirements-hypothesis.txt", "pylock.hypothesis.toml"):
+            with self.subTest(name=name):
+                result = process_changed_files({Path("Tools") / name})
+                self.assertEqual(result, Outputs(run_tests=True, run_ubuntu=True))
+
+    def test_native_dependencies(self):
+        for name in ("dependency-hashes.json", "download_dependencies.py"):
+            with self.subTest(name=name):
+                result = process_changed_files({Path("Tools/build") / name})
+                self.assertEqual(result, Outputs(
+                    run_tests=True, run_android=True, run_ios=True,
+                    run_ubuntu=True, run_windows_tests=True,
+                ))
+
+    def test_ensurepip_also_runs_docs(self):
+        result = process_changed_files({Path("Lib/ensurepip/_bundled/pip.whl")})
+        self.assertTrue(result.run_docs)
+        self.assertTrue(result.run_tests)
+        self.assertTrue(result.run_windows_tests)
+
+    def test_dependency_and_source_changes(self):
+        result = process_changed_files({
+            Path("Tools/requirements-bootstrap.txt"), Path("Lib/ast.py"),
+        })
+        self.assertTrue(result.run_docs)
+        self.assertTrue(result.run_ubuntu)
+        self.assertTrue(result.run_windows_tests)
+        self.assertTrue(result.run_macos)
+
+    def test_dependency_consumers_are_combined(self):
+        result = process_changed_files({
+            Path("Tools/pylock.hypothesis.toml"), Path("Misc/Brewfile"),
+        })
+        self.assertEqual(result, Outputs(
+            run_tests=True, run_ubuntu=True, run_macos=True,
+        ))
+
     def test_android(self):
         for d in ANDROID_DIRS:
             with self.subTest(d=d):
