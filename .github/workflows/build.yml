@@ -449,7 +449,11 @@ jobs:
         VENV_PYTHON=$VENV_LOC/bin/python
         echo "HYPOVENV=${VENV_LOC}" >> "$GITHUB_ENV"
         echo "VENV_PYTHON=${VENV_PYTHON}" >> "$GITHUB_ENV"
-        ./python -m venv "$VENV_LOC" && "$VENV_PYTHON" -m pip install -r "${GITHUB_WORKSPACE}/Tools/pylock.hypothesis.toml"
+        ./python -m venv "$VENV_LOC"
+        "$VENV_PYTHON" -m pip install --require-hashes --only-binary=:all: \
+          -r "${GITHUB_WORKSPACE}/Tools/requirements-build.txt"
+        "$VENV_PYTHON" -m pip install --no-build-isolation \
+          -r "${GITHUB_WORKSPACE}/Tools/pylock.hypothesis.toml"
     - name: 'Restore Hypothesis database'
       id: cache-hypothesis-database
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
