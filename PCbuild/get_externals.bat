@@ -71,7 +71,7 @@ for %%e in (%libraries%) do (
         git clone --depth 1 https://github.com/%ORG%/cpython-source-deps --branch %%e "%EXTERNALS_DIR%\%%e"
     ) else (
         echo.Fetching %%e...
-        %PYTHON% -E "%PCBUILD%\get_external.py" -O %ORG% -e "%EXTERNALS_DIR%" %%e
+        %PYTHON% -E "%PCBUILD%\get_external.py" -O %ORG% -e "%EXTERNALS_DIR%" %%e || exit /b 1
     )
 )
 
@@ -93,9 +93,9 @@ for %%b in (%binaries%) do (
     ) else (
         echo.Fetching %%b...
         if "%%b"=="llvm-21.1.4.0" (
-            %PYTHON% -E "%PCBUILD%\get_external.py" --release --organization %ORG% --externals-dir "%EXTERNALS_DIR%" %%b
+            %PYTHON% -E "%PCBUILD%\get_external.py" --release --organization %ORG% --externals-dir "%EXTERNALS_DIR%" %%b || exit /b 1
         ) else (
-            %PYTHON% -E "%PCBUILD%\get_external.py" --binary --organization %ORG% --externals-dir "%EXTERNALS_DIR%" %%b
+            %PYTHON% -E "%PCBUILD%\get_external.py" --binary --organization %ORG% --externals-dir "%EXTERNALS_DIR%" %%b || exit /b 1
         )
     )
 )

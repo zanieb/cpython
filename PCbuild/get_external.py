@@ -13,6 +13,9 @@ import urllib.error
 import urllib.request
 import zipfile
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / 'Tools' / 'build'))
+from download_dependencies import download
+
 
 @functools.cache
 def trigger_automatic_root_certificate_update(url: str, timeout: int = 30) -> None:
@@ -53,28 +56,28 @@ def retrieve_with_retries(download_location, output_path, reporthook,
         else:
             return resp
 
-def fetch_zip(commit_hash, zip_dir, *, org='python', binary=False, verbose):
+def fetch_zip(commit_hash, zip_dir, *, org='python', binary=False, verbose, manifest=None):
     repo = 'cpython-bin-deps' if binary else 'cpython-source-deps'
     url = f'https://github.com/{org}/{repo}/archive/{commit_hash}.zip'
     reporthook = None
     if verbose:
         reporthook = print
     zip_dir.mkdir(parents=True, exist_ok=True)
-    filename, _headers = retrieve_with_retries(
-        url,
-        zip_dir / f'{commit_hash}.zip',
-        reporthook
+    filename = download(
+        url, zip_dir / f'{commit_hash}.zip', manifest=manifest,
+        retrieve=lambda url, path: retrieve_with_retries(url, path, reporthook),
     )
     return filename
 
 
-def fetch_release(tag, tarball_dir, *, org='python', verbose=False):
+def fetch_release(tag, tarball_dir, *, org='python', verbose=False, manifest=None):
     arch = os.environ.get('PreferredToolArchitecture')
     if not arch:
         machine = platform.machine()
         arch = 'ARM64' if machine == 'ARM64' else 'AMD64'
     elif arch.lower() in ('x86', 'x64'):
         arch = 'AMD64'
+    arch = arch.upper()
     reporthook = None
     if verbose:
         reporthook = print
@@ -84,7 +87,10 @@ def fetch_release(tag, tarball_dir, *, org='python', verbose=False):
     arch_url = f'https://github.com/{org}/cpython-bin-deps/releases/download/{tag}/{arch_filename}'
     try:
         output_path = tarball_dir / arch_filename
-        retrieve_with_retries(arch_url, output_path, reporthook)
+        download(
+            arch_url, output_path, manifest=manifest,
+            retrieve=lambda url, path: retrieve_with_retries(url, path, reporthook),
+        )
         return output_path
     except OSError:
         if verbose:
@@ -93,7 +99,10 @@ def fetch_release(tag, tarball_dir, *, org='python', verbose=False):
     generic_filename = f'{tag}.tar.xz'
     generic_url = f'https://github.com/{org}/cpython-bin-deps/releases/download/{tag}/{generic_filename}'
     output_path = tarball_dir / generic_filename
-    retrieve_with_retries(generic_url, output_path, reporthook)
+    download(
+        generic_url, output_path, manifest=manifest,
+        retrieve=lambda url, path: retrieve_with_retries(url, path, reporthook),
+    )
     return output_path
 
 
@@ -122,6 +131,8 @@ def parse_args():
     p.add_argument('-e', '--externals-dir', type=pathlib.Path,
                    help='Directory in which to store dependencies',
                    default=pathlib.Path(__file__).parent.parent / 'externals')
+    p.add_argument('--dependency-manifest', type=pathlib.Path,
+                   help='Archive hashes for custom dependency repositories')
     p.add_argument('tag',
                    help='tag of the dependency')
     return p.parse_args()
@@ -146,6 +157,7 @@ def main():
             args.externals_dir / 'tarballs',
             org=args.organization,
             verbose=args.verbose,
+            manifest=args.dependency_manifest,
         )
         extracted = extract_tarball(args.externals_dir, tarball_path, args.tag)
     else:
@@ -157,6 +169,7 @@ def main():
             org=args.organization,
             binary=args.binary,
             verbose=args.verbose,
+            manifest=args.dependency_manifest,
         )
         extracted = extract_zip(args.externals_dir, zip_path)
 

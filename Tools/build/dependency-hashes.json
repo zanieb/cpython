@@ -1,0 +1,404 @@
+{
+  "https://github.com/aws/aws-lc/archive/refs/tags/v5.10.0.tar.gz": {
+    "sha256": "dcac84da23dcbdd38f297f64eb3f6c419c240730f70fbb319ea93c4c54a6084c"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/bzip2-1.0.8-3/bzip2-1.0.8-3-aarch64-linux-android.tar.gz": {
+    "sha256": "2385f46e173d525f079946957c007000a8ad11d8496ba66bae99129183d74bd9"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/bzip2-1.0.8-3/bzip2-1.0.8-3-arm-linux-androideabi.tar.gz": {
+    "sha256": "6a337ab443e2639bdcc24e1db867728bfcf15661ee7a5319fe41157249aa79c7"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/bzip2-1.0.8-3/bzip2-1.0.8-3-i686-linux-android.tar.gz": {
+    "sha256": "1ee54c1166281c58e876b8d921da6dac9f8fede2218658d7f5e0c65ef1930d15"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/bzip2-1.0.8-3/bzip2-1.0.8-3-x86_64-linux-android.tar.gz": {
+    "sha256": "1b79e8b78037e8905947d474cc1adc098c815a8a0e46c0a93c3251ca9fdcaded"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/libffi-3.4.4-3/libffi-3.4.4-3-aarch64-linux-android.tar.gz": {
+    "sha256": "9f2c0255ce025c177d44db16174ad5158c7560efe3c7ef0c8c0c64b2196e6a9d"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/libffi-3.4.4-3/libffi-3.4.4-3-arm-linux-androideabi.tar.gz": {
+    "sha256": "38ab0cab3ec6e94d26ca5fe9e7556130745cce8448c3b5ecf5c48e5238e92f37"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/libffi-3.4.4-3/libffi-3.4.4-3-i686-linux-android.tar.gz": {
+    "sha256": "556133e368a31319160e7ddc8275df12d923801a9afbd375290a378421819dcd"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/libffi-3.4.4-3/libffi-3.4.4-3-x86_64-linux-android.tar.gz": {
+    "sha256": "4daa87ab39ca065273aca85b31e25fbb60d899eb2d8e9ef1fb13e9a8247f1bd2"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/openssl-3.5.9-0/openssl-3.5.9-0-aarch64-linux-android.tar.gz": {
+    "sha256": "bf115f29963d577e20a1595dac13baec7ccd559bf8a05f37659ba6b735a8778b"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/openssl-3.5.9-0/openssl-3.5.9-0-arm-linux-androideabi.tar.gz": {
+    "sha256": "fe79dbe5cfb10c1abb2730e2863fd7383ad092324e5d460fb54ee8baf0d91f7d"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/openssl-3.5.9-0/openssl-3.5.9-0-i686-linux-android.tar.gz": {
+    "sha256": "ca3cd56ebe9d1e607c5c0509f60d83d1a67ad5a3b90c3565b869a810caf4bf8e"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/openssl-3.5.9-0/openssl-3.5.9-0-x86_64-linux-android.tar.gz": {
+    "sha256": "11fe72e251fccb5d81fc43a67096a4ce540e09ddf3a8a587dede199774c89141"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/sqlite-3.53.4-0/sqlite-3.53.4-0-aarch64-linux-android.tar.gz": {
+    "sha256": "11dfa2e8360b3022fb5da98743273bee09559cb546bbd00398e1578fefb3b3db"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/sqlite-3.53.4-0/sqlite-3.53.4-0-arm-linux-androideabi.tar.gz": {
+    "sha256": "958a0928aa334efde0d089b2fe0099aa26aa0a2cb55d63b3c75ad2c16c593602"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/sqlite-3.53.4-0/sqlite-3.53.4-0-i686-linux-android.tar.gz": {
+    "sha256": "42131974c3dfe8a04fa38f6f2fdbf784f9641e075850e8a514a69af4b73e677f"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/sqlite-3.53.4-0/sqlite-3.53.4-0-x86_64-linux-android.tar.gz": {
+    "sha256": "e44e304d8a75bf2ca7903f844367828cd9931076e4fe175c1eb38bf7dcdc6783"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/xz-5.4.6-1/xz-5.4.6-1-aarch64-linux-android.tar.gz": {
+    "sha256": "320b76d45dc3499cf855e5310f875cba61c2608e4a98bb280cc4f1b8f189da1a"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/xz-5.4.6-1/xz-5.4.6-1-arm-linux-androideabi.tar.gz": {
+    "sha256": "07a5b575dcef750f1decf6cdce1f18aa6e1b6a5080c4ce5ee283b1a40104ba2c"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/xz-5.4.6-1/xz-5.4.6-1-i686-linux-android.tar.gz": {
+    "sha256": "afd923e8dd6172d275b1712305ceb97e8230afd19caeb6a83465ea96f44aed89"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/xz-5.4.6-1/xz-5.4.6-1-x86_64-linux-android.tar.gz": {
+    "sha256": "4a5564d85e26cd24efc5bb23b8490c4a76a3d4791957f8d13be235a0fdb0fc2b"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/zstd-1.5.7-2/zstd-1.5.7-2-aarch64-linux-android.tar.gz": {
+    "sha256": "c3ae98fbe54b0cef9601d9dc120ed692d79609087e6926c70d8fc30face07fe7"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/zstd-1.5.7-2/zstd-1.5.7-2-arm-linux-androideabi.tar.gz": {
+    "sha256": "800243ca6ec7e4706b94a892800e9a27cf8894eda35e3088df993e89cd4229cb"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/zstd-1.5.7-2/zstd-1.5.7-2-i686-linux-android.tar.gz": {
+    "sha256": "6e1b07c0bf6b88ca5276c8901e6723b9bf844ba190fc72b7e13f1fab8cb76727"
+  },
+  "https://github.com/beeware/cpython-android-source-deps/releases/download/zstd-1.5.7-2/zstd-1.5.7-2-x86_64-linux-android.tar.gz": {
+    "sha256": "162e5c9d9542f83f16c6aea2c8b49f94f39196675be4eb22cb8d9a04fb2175fe"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-appletvos.arm64.tar.gz": {
+    "sha256": "1ee6e9b4279c376f8aba1cecdc256ba1add06ae57115cc627c28fb24958c3154"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-appletvsimulator.arm64.tar.gz": {
+    "sha256": "b54876d41a95cabd5a0319a98eafa011386c7aac6be2435bd7248c88cbbc41d9"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-appletvsimulator.x86_64.tar.gz": {
+    "sha256": "390b357e5b21782b3ffa19ca639168667b981c4a5c459f8ab0285e73a52c18d0"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-iphoneos.arm64.tar.gz": {
+    "sha256": "0b2abc502c01f98fedf2391bfe7cb37e9f3164f092457e1dcbc4d54ffec73a9c"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-iphonesimulator.arm64.tar.gz": {
+    "sha256": "8ebd67806f31936ea2f55f42a3a213263937d4a78b43eb5f7e831ac5bbc220c8"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-iphonesimulator.x86_64.tar.gz": {
+    "sha256": "fabae16351580b48604d35b8edb736927e0350004aa5f568cba22975b6e2c93f"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-macabi.arm64.tar.gz": {
+    "sha256": "5d6faf92cc2e4b60a6319cab0965665433a215ad6e5b6e9b476a623483be3a2e"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-macabi.x86_64.tar.gz": {
+    "sha256": "95d1e0488834cec014d0b675760412e1731055102a02cd3a6e35c6cd0a61fd48"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-watchos.arm64_32.tar.gz": {
+    "sha256": "f362b724bdb9ee090d0b765186457f0df285fe71d94bbe3a9cd841e1edb5c076"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-watchsimulator.arm64.tar.gz": {
+    "sha256": "15650f95868fc32dee7eaba73d59814849939b8119bff1fd09f2f4f13d7426a2"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-watchsimulator.x86_64.tar.gz": {
+    "sha256": "abf3e0097ca625ef5b19e3529b95ae7c59778a7e24e1454fd8db67baffa2b69a"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-xros.arm64.tar.gz": {
+    "sha256": "2f1dc324223a8d76e1e6fafaa153e96fe245de6f29289eee322a780cd6811cd7"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-1.0.8-2/bzip2-1.0.8-2-xrsimulator.arm64.tar.gz": {
+    "sha256": "26a2a364357c72a726da248e7ba6100ad8433c4703fcad15e72114908deeb92b"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-appletvos.arm64.tar.gz": {
+    "sha256": "e7db99c10d845c1cccbebc564ddc9c04d2bec4356d3015aa892e33798167e8be"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-appletvsimulator.arm64.tar.gz": {
+    "sha256": "c50b46b474e8a51f81e3e38166690d6b4dd3adac03bb75ad1e96e07e976f16f6"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-appletvsimulator.x86_64.tar.gz": {
+    "sha256": "ddb566f6041c7f1a4df12e6f6a565d821153ceb387d19f32bc3c8a9123f708f7"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-iphoneos.arm64.tar.gz": {
+    "sha256": "aa8c3a96138a5650f51a1416076f947fec9ae7a5fba83afb0015fefe314107dc"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-iphonesimulator.arm64.tar.gz": {
+    "sha256": "3617fe2d80bb2f0cd981f39d32b0bd651c36b86efe71b9d4025ca3befd229461"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-iphonesimulator.x86_64.tar.gz": {
+    "sha256": "bd27471f292d501906a6d7ee36ce8ffe4d39ebb1c00ffe3c06e679b090d13f4d"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-macabi.arm64.tar.gz": {
+    "sha256": "70845344b817d5fc0adc601bdc43621bdd2f98d45bbc2a0edc5c9c1d447b726a"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-macabi.x86_64.tar.gz": {
+    "sha256": "56eb0085561cff5e021b5b676bc8f3f890ede72c69320797d709bb86b516aa48"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-watchos.arm64_32.tar.gz": {
+    "sha256": "6cf7b23c087381e0c8a14cc830821ffc7197c2e16c2e57cc7372c83cb2dc865c"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-watchsimulator.arm64.tar.gz": {
+    "sha256": "dae5ebfc582d33aeb66caf0474fc61f6bcc0b9da724415a52bfaa2c238e00051"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-watchsimulator.x86_64.tar.gz": {
+    "sha256": "0d6184a97fa465f982ae81d443c467d8791a5463dafd1c35cdfb69707fc661e9"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-xros.arm64.tar.gz": {
+    "sha256": "41f75707fa6cc73a8930eb52b7c41b7469c37bd929a7bea25a83440658b38823"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-3.5.9-1/openssl-3.5.9-1-xrsimulator.arm64.tar.gz": {
+    "sha256": "a7a847353b67cc4be23bc4d7b69a6b7907353a1e4987ad68cd97ca1620d5f251"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-appletvos.arm64.tar.gz": {
+    "sha256": "aac945210464a1a28890699f85cf1c04b6e1354919a28901a4632e02785c1d53"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-appletvsimulator.arm64.tar.gz": {
+    "sha256": "372018fd5144b8c71cdcbe505ba40d04824d811e2875c95cac4c6c5013cdc40d"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-appletvsimulator.x86_64.tar.gz": {
+    "sha256": "0132999f99b11bad7be5e81b8645c97c5beaff04bc7a71bb30f1204c576b1271"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-iphoneos.arm64.tar.gz": {
+    "sha256": "81122ec17de37ade2c2ff79eb36924e6ffae6f0454af9aad0eb801cd18ec12f3"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-iphonesimulator.arm64.tar.gz": {
+    "sha256": "cd74e6ceff13158fb1e4052a75e55c83bcfa78f95df841fa2cffacc4695767ab"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-iphonesimulator.x86_64.tar.gz": {
+    "sha256": "d77060fccbb02ed876b47791ede3dcd9415c831eb6459a4d281800d4346c45e6"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-macabi.arm64.tar.gz": {
+    "sha256": "8b4c0f710452edfb900dd2aa2f834bb6cf7b4f57fbee07cb5a6eb1b64fcec3f8"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-macabi.x86_64.tar.gz": {
+    "sha256": "b0fd1e38852ac74dab76845a9cab5c51f7592f20f1d9ebf9302246c748e499fc"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-watchos.arm64_32.tar.gz": {
+    "sha256": "c70a655de16f1a0eb4bfdca4979fda4f66c8aa9a3855213ab47f1f6337a76802"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-watchsimulator.arm64.tar.gz": {
+    "sha256": "6a98891bdb79d6de1493f1ee4c68a8fc8c631fb5e0e744239af6418291a13167"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-watchsimulator.x86_64.tar.gz": {
+    "sha256": "7a9dcdaeb03ebc5bb26fb4aee640e4acedf204392de924f703a4857b320f2c59"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-xros.arm64.tar.gz": {
+    "sha256": "39c5ada97529ad0ac6a51fd420c06f6e100c71fd1d09650de03b784e316606ab"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-5.6.4-2/xz-5.6.4-2-xrsimulator.arm64.tar.gz": {
+    "sha256": "074c60df6f96a463f30d8d04d5091d4bfbf4cb4361cb5cd4427a230811af0809"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-appletvos.arm64.tar.gz": {
+    "sha256": "c0639363ac6dc7ff53e8a54b71dbc010c39a724803d2f8cc885d236a75781db1"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-appletvsimulator.arm64.tar.gz": {
+    "sha256": "77c60c9994d7ca175c54030d12d6a28147963cd659b251da0d460a6107d94183"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-appletvsimulator.x86_64.tar.gz": {
+    "sha256": "7d6797c0fbb571ad98bc13ab790c584e82d53fe2562d437c9ffa4f7f0b1e84c0"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-iphoneos.arm64.tar.gz": {
+    "sha256": "4b20898346fb5b0875f30596d98a62d418acc225ad0a518fdf440d8496ec6b71"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-iphonesimulator.arm64.tar.gz": {
+    "sha256": "f53aa93753df9ba910c2895da017f3313bb0cf8bb88b7e6992bf3aacd3b4342d"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-iphonesimulator.x86_64.tar.gz": {
+    "sha256": "77059c87664b8aeb7f83974c01690e6e31f2472aba3b464f6fa6c78f095f08bf"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-macabi.arm64.tar.gz": {
+    "sha256": "cd2822d841ab5dce346697357e86b3e784ec2bb0dfcae26a4e8d28a2297e6424"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-macabi.x86_64.tar.gz": {
+    "sha256": "4a38375d98cb15624855ed476558992ee9e56f3d7d511c8e1ee1bd3ec26b546e"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-watchos.arm64_32.tar.gz": {
+    "sha256": "e48995e4e85bd169c0e55a5167b62c4731d536c6fa8fb842bf0423a3cda6d025"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-watchsimulator.arm64.tar.gz": {
+    "sha256": "c3baff2da0f659c06fb21ff3074fe53de4cfed9cb95d3aec8b3cb49e5f457124"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-watchsimulator.x86_64.tar.gz": {
+    "sha256": "d658aab1b0e85ebe8544f581b02e4c8e1ef4faeb77717957ef8d7de562ea5334"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-xros.arm64.tar.gz": {
+    "sha256": "6d32563ddd54a0a79a765d4d797274516eedf626a867ed3c5cc30b9295ad96d2"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-3.4.7-2/libffi-3.4.7-2-xrsimulator.arm64.tar.gz": {
+    "sha256": "3228f8235136700e2a644e8ad24e9c1f45f2bc0d0340c58f2d087adc0342dd66"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-appletvos.arm64.tar.gz": {
+    "sha256": "25887ddc788bdc1a6a00bfc4e7735bd1730e3a027774fb27551832c7af9a9d0d"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-appletvsimulator.arm64.tar.gz": {
+    "sha256": "cbf51a1479c87c316554633d38716cfd787de0605602c4b252b1e083e605fd15"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-appletvsimulator.x86_64.tar.gz": {
+    "sha256": "ce43e198551f8c769f2f2f78f75a5c58f2d81903c7515f14e5586ff8472aca30"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-iphoneos.arm64.tar.gz": {
+    "sha256": "ae5fda992ee096cec0b011bdf34d8fd7c107bd250793f755d1b3418221167f9e"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-iphonesimulator.arm64.tar.gz": {
+    "sha256": "1059a5821f1abed94c564af194be347ebc78c68944fb3c2598b480790667d6b7"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-iphonesimulator.x86_64.tar.gz": {
+    "sha256": "dc39543c85afb21534e818c9553de474dbf42b91fe1fd62c487cc4c0ecef7145"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-macabi.arm64.tar.gz": {
+    "sha256": "4105f77631db86b4264c8441c38ed34069b0e3b4d628b35de8d869e38f11bf45"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-macabi.x86_64.tar.gz": {
+    "sha256": "298cb858a09c5538ee810a46934ab54607cca257ac5e2744a6b636de1a5fe138"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-watchos.arm64_32.tar.gz": {
+    "sha256": "e27244aa3924fd46ee757e55ab9346de21d884d91fbfc8981148797918c12e9a"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-watchsimulator.arm64.tar.gz": {
+    "sha256": "f72b39f09fa98ec502cf7a423b86a337faa58df4bbb5ca8c0d971904365c8622"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-watchsimulator.x86_64.tar.gz": {
+    "sha256": "26b0585054a335fce468b5f3b06f260d8451ba1cdcc9d6a1d0ab16014bf7be54"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-xros.arm64.tar.gz": {
+    "sha256": "aae5f2f15489e1ea83529525a4b21229a527395736652bd067828269978e0f3f"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-4.0.0-2/mpdecimal-4.0.0-2-xrsimulator.arm64.tar.gz": {
+    "sha256": "f154a264cecc5cb7ac2dc752180ebedbf4ba4e05e6742514eb980549b05c81e9"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-appletvos.arm64.tar.gz": {
+    "sha256": "969493f5cdf748ce7d7ce771e74a207da2c788f5e6a132814cb4688a46f0c1f5"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-appletvsimulator.arm64.tar.gz": {
+    "sha256": "97bde65c4be25db652be0ac294d1e383ba3306f93889783b08318fc6385cd11b"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-appletvsimulator.x86_64.tar.gz": {
+    "sha256": "25ee1f6c835d1e3a32e32738affa4fcd0c01543ed632a76a2253995b4a4b8361"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-iphoneos.arm64.tar.gz": {
+    "sha256": "eda466b25a1ede258de39d2e5d71321fa19021665cc71f2f5b4925b955c6403f"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-iphonesimulator.arm64.tar.gz": {
+    "sha256": "0052a4b3f9b58d625b721a6af9d6dcd3fad5ba0c5982b4808e21e93183228ada"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-iphonesimulator.x86_64.tar.gz": {
+    "sha256": "36bba4a6a84a0a023202de1b35f8ab0708c588cff03d3d99660845872b4f0998"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-macabi.arm64.tar.gz": {
+    "sha256": "12c07799b33dcec03022b258976acebb6283e192f338763daa76823d2d66d8f2"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-macabi.x86_64.tar.gz": {
+    "sha256": "c39fbf6760b7a7970d3630e4b42b6e914376a7c737e021eab208def86b202ede"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-watchos.arm64_32.tar.gz": {
+    "sha256": "dfab7d56e01ea45539b086934840691910ec66c9cbc489832dd60085688082a3"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-watchsimulator.arm64.tar.gz": {
+    "sha256": "8be373b1b967480dff4e35abe9d8316d44524c504c6b489862a4b78c5cfbef98"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-watchsimulator.x86_64.tar.gz": {
+    "sha256": "0afdfeba884963ae55d361985336f69ea6edfd3e9bf0a3e7af596ea292065479"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-xros.arm64.tar.gz": {
+    "sha256": "3339d1b0b49bebb6ace14ab0d2f885d15d6d007f1b767c788db61665de20e468"
+  },
+  "https://github.com/beeware/cpython-apple-source-deps/releases/download/zstd-1.5.7-1/zstd-1.5.7-1-xrsimulator.arm64.tar.gz": {
+    "sha256": "13ac48e65c9e660d155f84cbf93ea12b169576c40cc46ddcf48c62f732dd9258"
+  },
+  "https://github.com/openssl/openssl/releases/download/openssl-1.1.1w/openssl-1.1.1w.tar.gz": {
+    "sha256": "cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8",
+    "url": "https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1w/openssl-1.1.1w.tar.gz"
+  },
+  "https://github.com/openssl/openssl/releases/download/openssl-3.0.22/openssl-3.0.22.tar.gz": {
+    "sha256": "67ebca7e50d17383028045486653492195b83db95f8558709701bb47b5c1ef81"
+  },
+  "https://github.com/openssl/openssl/releases/download/openssl-3.1.8/openssl-3.1.8.tar.gz": {
+    "sha256": "d319da6aecde3aa6f426b44bbf997406d95275c5c59ab6f6ef53caaa079f456f"
+  },
+  "https://github.com/openssl/openssl/releases/download/openssl-3.2.6/openssl-3.2.6.tar.gz": {
+    "sha256": "89681a9ddaa9ed7cf25ea8ef61338db805200bae47d00510490623547380c148"
+  },
+  "https://github.com/openssl/openssl/releases/download/openssl-3.3.7/openssl-3.3.7.tar.gz": {
+    "sha256": "4900be54e81c4dfe00bb1a10dad33fd8414833573c40d0e9e3274d4ed32e53a2"
+  },
+  "https://github.com/openssl/openssl/releases/download/openssl-3.4.8/openssl-3.4.8.tar.gz": {
+    "sha256": "9de9ce2f29e584044ae07ab93fc601637be01fdc91d109c5a655ec7419e6022b"
+  },
+  "https://github.com/openssl/openssl/releases/download/openssl-3.5.9/openssl-3.5.9.tar.gz": {
+    "sha256": "603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a"
+  },
+  "https://github.com/openssl/openssl/releases/download/openssl-3.6.5/openssl-3.6.5.tar.gz": {
+    "sha256": "a2157c2830efdec3788939b00c9b0638306d3f0bbb76dc4832ee503bb397df98"
+  },
+  "https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz": {
+    "sha256": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9"
+  },
+  "https://github.com/python/cpython-bin-deps/archive/libffi-3.4.4.zip": {
+    "sha256": "6b0f53490e0dd958708bff32df689cf2163c214147fcb8edb76a403fa6a877ca",
+    "url": "https://github.com/python/cpython-bin-deps/archive/94cb9a1c7feb608adf2b9f8fe2dbd6925ffbf90d.zip"
+  },
+  "https://github.com/python/cpython-bin-deps/archive/nasm-2.11.06.zip": {
+    "sha256": "28a5470806156957a099d45a1305a69844faf63fe0ebe8170c28734d395124bf",
+    "url": "https://github.com/python/cpython-bin-deps/archive/e544f0d859280f29d29c6ada34ec7b49ca4db325.zip"
+  },
+  "https://github.com/python/cpython-bin-deps/archive/openssl-bin-3.5.9.zip": {
+    "sha256": "0dbf56dcce0ab4054e6192ae488d7d439f678cceca858810de990be51bb80335",
+    "url": "https://github.com/python/cpython-bin-deps/archive/ddb46a415b4995440723183e644f8d2c346567a2.zip"
+  },
+  "https://github.com/python/cpython-bin-deps/archive/tcltk-9.0.4.0.zip": {
+    "sha256": "992cf8c6579df85175a8971b1f8cd39106c8c84dc60b017d5f93aeedb9e3f0b4",
+    "url": "https://github.com/python/cpython-bin-deps/archive/907f3f4de820cb74fc8fb4431a39beae4c690915.zip"
+  },
+  "https://github.com/python/cpython-bin-deps/releases/download/llvm-21.1.4.0/llvm-21.1.4.0-AMD64.tar.xz": {
+    "sha256": "1320ea9dfdfff8da777b183129fbf3e3b1404905661edbfd13eaacac66f7a147"
+  },
+  "https://github.com/python/cpython-bin-deps/releases/download/llvm-21.1.4.0/llvm-21.1.4.0-ARM64.tar.xz": {
+    "sha256": "386dd3e137b64ec5655510cfee08abac12224f18dcd8410c7ceb70c87e033ea0"
+  },
+  "https://github.com/python/cpython-bin-deps/releases/download/llvm-21.1.4.0/llvm-21.1.4.0.tar.xz": {
+    "sha256": "8d21f321b1b67091ff1394ac06509a40abf46f42dd7664c1f68c277d84f9c2cc"
+  },
+  "https://github.com/python/cpython-source-deps/archive/bzip2-1.0.8.zip": {
+    "sha256": "44b15bede52b32f8673a2976621a847258b041243c003e30f4d9a05214785fe5",
+    "url": "https://github.com/python/cpython-source-deps/archive/05301997b2f9590f49c672cf3dfd3d3dfa7ad521.zip"
+  },
+  "https://github.com/python/cpython-source-deps/archive/libffi-3.4.4.zip": {
+    "sha256": "8e9aa32f58c8cefd4bef8d4bbcea111154a84ff9213dbe16379ebd24292fa81e",
+    "url": "https://github.com/python/cpython-source-deps/archive/73b247f34ef3ae1859b8c2c34d321d34ebc5db15.zip"
+  },
+  "https://github.com/python/cpython-source-deps/archive/mpdecimal-4.0.0.zip": {
+    "sha256": "83d632cd1eb511eba6fdbd4a2f17ad16ca34c8e04558a4ca4e4d460d56471c22",
+    "url": "https://github.com/python/cpython-source-deps/archive/48316ec025c1ebe500854c332be0a12c640c7301.zip"
+  },
+  "https://github.com/python/cpython-source-deps/archive/openssl-3.5.9.zip": {
+    "sha256": "beb9f32ccebbe4ba58a2d72d26b8a5217a75f542217746acfc6f2b10a698377e",
+    "url": "https://github.com/python/cpython-source-deps/archive/9781f5eb703412922b70d69b4f1e10e54e1bd303.zip"
+  },
+  "https://github.com/python/cpython-source-deps/archive/sqlite-3.53.4.0.zip": {
+    "sha256": "0c604ef459fad52cac8a6b0782a6dd4799bca5680053a99aa531d491f588ae3e",
+    "url": "https://github.com/python/cpython-source-deps/archive/f048e6a40879da9828ca2cf3b260f3e0a26117fb.zip"
+  },
+  "https://github.com/python/cpython-source-deps/archive/tcl-9.0.4.0.zip": {
+    "sha256": "ba7974514b7794db952bd04f5b52c53f7ff5c9efd448ad0bf0d092abbb9214ef",
+    "url": "https://github.com/python/cpython-source-deps/archive/53c758cbf2cc178b359abc03fdd912c5e66ed74f.zip"
+  },
+  "https://github.com/python/cpython-source-deps/archive/tk-9.0.4.1.zip": {
+    "sha256": "0b3a6fdf9e449873591ab001bcc3123eef70d60609a3384d4df543fae0aff194",
+    "url": "https://github.com/python/cpython-source-deps/archive/a6a5bee1ef4b526b0d11200c84bc02e85d8ecc83.zip"
+  },
+  "https://github.com/python/cpython-source-deps/archive/xz-5.8.1.1.zip": {
+    "sha256": "bd14886d610392aeb2c7a81677b5e4d85c9e2c88ed8d14588426f3cc34e17f50",
+    "url": "https://github.com/python/cpython-source-deps/archive/665d407bd6bc941944db2152e4b5dca388ea586e.zip"
+  },
+  "https://github.com/python/cpython-source-deps/archive/zlib-ng-2.2.4.zip": {
+    "sha256": "79f96b877b1539cf6fe2eeff2a03a04e1accbec07b06c48fcd0bebaec97f76aa",
+    "url": "https://github.com/python/cpython-source-deps/archive/a502e047655c31db29601def76ad6539acacf43d.zip"
+  },
+  "https://github.com/python/cpython-source-deps/archive/zstd-1.5.7.zip": {
+    "sha256": "6c5bb4e9571fe5c7c1c368caa37b08845e6119eccd413d533b4bfa6622e59559",
+    "url": "https://github.com/python/cpython-source-deps/archive/eef946ae8cf1591c0e5cc5f43486210768647c2e.zip"
+  }
+}

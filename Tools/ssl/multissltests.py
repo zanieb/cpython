@@ -28,11 +28,6 @@ import argparse
 from datetime import datetime
 import logging
 import os
-try:
-    from urllib.request import urlopen
-    from urllib.error import HTTPError
-except ImportError:
-    from urllib2 import urlopen, HTTPError
 import re
 import shutil
 import subprocess
@@ -72,6 +67,8 @@ AWSLC_RECENT_VERSIONS = [
 HERE = os.path.dirname(os.path.abspath(__file__))
 PYTHONROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 MULTISSL_DIR = os.path.abspath(os.path.join(PYTHONROOT, '..', 'multissl'))
+sys.path.insert(0, os.path.join(PYTHONROOT, 'Tools', 'build'))
+from download_dependencies import download
 
 
 parser = argparse.ArgumentParser(
@@ -79,6 +76,10 @@ parser = argparse.ArgumentParser(
     description=(
         "Run CPython tests with multiple cryptography libraries/versions."
     ),
+)
+parser.add_argument(
+    '--dependency-manifest',
+    help='Archive hashes for additional library versions',
 )
 parser.add_argument(
     '--debug',
@@ -273,30 +274,11 @@ class AbstractBuilder(object):
         return out.strip().decode("utf-8")
 
     def _download_src(self):
-        """Download sources"""
-        src_dir = os.path.dirname(self.src_file)
-        if not os.path.isdir(src_dir):
-            os.makedirs(src_dir)
-        data = None
-        for url_template in self.url_templates:
-            url = url_template.format(v=self.version, s=self.short_version)
-            log.info("Downloading from {}".format(url))
-            try:
-                req = urlopen(url)
-                # KISS, read all, write all
-                data = req.read()
-            except HTTPError as e:
-                log.error(
-                    "Download from {} has from failed: {}".format(url, e)
-                )
-            else:
-                log.info("Successfully downloaded from {}".format(url))
-                break
-        if data is None:
-            raise ValueError("All download URLs have failed")
-        log.info("Storing {}".format(self.src_file))
-        with open(self.src_file, "wb") as f:
-            f.write(data)
+        """Download sources or verify the cached archive."""
+        urls = [template.format(v=self.version, s=self.short_version)
+                for template in self.url_templates]
+        download(urls[0], self.src_file,
+                 manifest=self.args.dependency_manifest, mirrors=urls[1:])
 
     def _unpack_src(self):
         """Unpack tar.gz bundle"""
@@ -358,10 +340,7 @@ class AbstractBuilder(object):
     def install(self):
         log.info(self.openssl_cli)
         if not self.has_openssl or self.args.force:
-            if not self.has_src:
-                self._download_src()
-            else:
-                log.debug("Already has src {}".format(self.src_file))
+            self._download_src()
             self._unpack_src()
             self._build_src()
             self._make_install()

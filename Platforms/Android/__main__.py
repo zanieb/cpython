@@ -220,6 +220,9 @@ def pythoninfo_build_python(context):
 # these tags yourself, please contact Malcolm Smith or Russell Keith-Magee.
 def unpack_deps(host, prefix_dir, cache_dir):
     os.chdir(prefix_dir)
+    sys.path.insert(0, str(PYTHON_DIR / "Tools" / "build"))
+    from download_dependencies import download as download_dependency
+
     deps_url = "https://github.com/beeware/cpython-android-source-deps/releases/download"
     for name_ver in [
         "bzip2-1.0.8-3",
@@ -230,7 +233,12 @@ def unpack_deps(host, prefix_dir, cache_dir):
         "zstd-1.5.7-2"
     ]:
         filename = f"{name_ver}-{host}.tar.gz"
-        out_path = download(f"{deps_url}/{name_ver}/{filename}", cache_dir)
+        out_path = download_dependency(
+            f"{deps_url}/{name_ver}/{filename}", cache_dir / filename,
+            retrieve=lambda url, path: run([
+                "curl", "-Lf", "--retry", "5", "--retry-all-errors", "-o", path, url,
+            ]),
+        )
         shutil.unpack_archive(out_path)
 
 
@@ -259,7 +267,12 @@ def configure_host_python(context, host=None):
             if context.cache_dir
             else CROSS_BUILD_DIR / "downloads"
         )
-        unpack_deps(host, prefix_dir, cache_dir)
+        try:
+            unpack_deps(host, prefix_dir, cache_dir)
+        except BaseException:
+            os.chdir(host_dir)
+            shutil.rmtree(prefix_dir)
+            raise
 
     os.chdir(host_dir)
     command = [
