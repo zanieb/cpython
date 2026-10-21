@@ -136,6 +136,9 @@ Tools/unicode/data/
 /autom4te.cache
 /build/
 /builddir/
+/.native-deps/
+/.native-sources/
+/..native-deps.lock
 /compile_commands.json
 /config.cache
 /config.log

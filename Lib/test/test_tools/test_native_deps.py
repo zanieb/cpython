@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import tarfile
 import tempfile
@@ -89,6 +90,30 @@ class SourceTests(unittest.TestCase):
                 with self.assertRaises((ValueError, tarfile.FilterError)):
                     deps.extract_source(archive, self.directory / "out", self.source)
                 self.assertFalse((self.directory / "escaped").exists())
+
+    def test_invalid_manifest_paths(self):
+        for filename in ("../LICENSE", "/LICENSE", "C:/LICENSE", "..\\LICENSE"):
+            with self.subTest(filename=filename):
+                self.source["license-file"] = filename
+                manifest = self.directory / "manifest.json"
+                manifest.write_text(json.dumps({
+                    "schema": 1, "sources": {"example-1": self.source}}))
+                with self.assertRaisesRegex(ValueError, "license path"):
+                    deps.load_manifest(manifest)
+
+    def test_build_inputs_track_flags_and_selection(self):
+        manifest = deps.load_manifest()
+        with patch.object(deps, "tool_identity", return_value={"version": "cc 1"}):
+            with patch.dict(os.environ, {"CFLAGS": "-O0"}):
+                first = deps.build_inputs(manifest, ["libffi"], self.directory)
+            with patch.dict(os.environ, {"CFLAGS": "-O2"}):
+                second = deps.build_inputs(manifest, ["libffi"], self.directory)
+                both = deps.build_inputs(
+                    manifest, ["libffi", "mpdecimal"], self.directory)
+        self.assertNotEqual(first, second)
+        self.assertNotEqual(second, both)
+        self.assertEqual(first["environment"]["CFLAGS"], "-O0 -fPIC")
+        self.assertEqual(set(first["sources"]), {"libffi-3.4.6"})
 
     def test_checked_in_manifest(self):
         manifest = deps.load_manifest()
