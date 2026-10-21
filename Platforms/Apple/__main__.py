@@ -344,6 +344,16 @@ def apple_multiarch(host: str) -> str:
     raise KeyError(host)
 
 
+DEPENDENCIES = [
+    "BZip2-1.0.8-2",
+    "libFFI-3.4.7-2",
+    "OpenSSL-3.5.9-1",
+    "XZ-5.6.4-2",
+    "mpdecimal-4.0.0-2",
+    "zstd-1.5.7-1",
+]
+
+
 def unpack_deps(
     platform: str,
     host: str,
@@ -366,14 +376,7 @@ def unpack_deps(
     # push these tags yourself, please contact Malcolm Smith or Russell
     # Keith-Magee.
     deps_url = "https://github.com/beeware/cpython-apple-source-deps/releases/download"
-    for name_ver in [
-        "BZip2-1.0.8-2",
-        "libFFI-3.4.7-2",
-        "OpenSSL-3.5.9-1",
-        "XZ-5.6.4-2",
-        "mpdecimal-4.0.0-2",
-        "zstd-1.5.7-1",
-    ]:
+    for name_ver in DEPENDENCIES:
         filename = f"{name_ver.lower()}-{apple_target(host)}.tar.gz"
         archive_path = download(
             f"{deps_url}/{name_ver}/{filename}",
@@ -431,16 +434,30 @@ def configure_host_python(
     prefix_dir = host_dir / "prefix"
 
     with group(f"Downloading dependencies ({host})"):
-        if not prefix_dir.exists():
-            prefix_dir.mkdir()
-            cache_dir = (
-                Path(context.cache_dir).resolve()
-                if context.cache_dir
-                else CROSS_BUILD_DIR / "downloads"
-            )
-            unpack_deps(context.platform, host, prefix_dir, cache_dir)
-        else:
-            print("Dependencies already installed")
+        sys.path.insert(0, str(PYTHON_DIR / "Tools" / "build"))
+        try:
+            from dependency_cache import install_prefix
+        finally:
+            sys.path.pop(0)
+
+        cache_dir = (
+            Path(context.cache_dir).resolve()
+            if context.cache_dir
+            else CROSS_BUILD_DIR / "downloads"
+        )
+        install_prefix(
+            prefix_dir,
+            {
+                "target": host,
+                "platform": context.platform,
+                "packages": DEPENDENCIES,
+                "recipe": 1,
+            },
+            lambda staging: unpack_deps(
+                context.platform, host, staging, cache_dir
+            ),
+            use_existing=context.use_existing_deps,
+        )
 
     with (
         group(f"Configuring host Python ({host})"),
@@ -1090,6 +1107,13 @@ def parse_args() -> argparse.Namespace:
             "--cache-dir",
             default=os.environ.get("CACHE_DIR"),
             help="The directory to store cached downloads.",
+        )
+
+    for cmd in [configure_host, build, ci]:
+        cmd.add_argument(
+            "--use-existing-deps",
+            action="store_true",
+            help="Use the existing dependency prefix without updating it",
         )
 
     # --simulator option
