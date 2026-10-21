@@ -438,8 +438,8 @@ if real_executable:
 
 if not executable_dir and os_name == 'darwin' and library:
     # QUIRK: macOS checks adjacent to its library early
-    library_dir = dirname(library)
-    if any(isfile(joinpath(library_dir, p)) for p in STDLIB_LANDMARKS):
+    library_dir = search_up(dirname(library), *STDLIB_LANDMARKS)
+    if library_dir:
         # Exceptions here should abort the whole process (to match
         # previous behavior)
         executable_dir = realpath(library_dir)
@@ -577,10 +577,13 @@ else:
             else:
                 prefix = search_up(library_dir, ZIP_LANDMARK)
         if STDLIB_SUBDIR and STDLIB_LANDMARKS and not prefix:
-            if any(isfile(joinpath(library_dir, f)) for f in STDLIB_LANDMARKS):
-                prefix = library_dir
-                if not stdlib_dir_was_set_in_config:
-                    stdlib_dir = joinpath(prefix, STDLIB_SUBDIR)
+            if os_name == 'nt':
+                if any(isfile(joinpath(library_dir, f)) for f in STDLIB_LANDMARKS):
+                    prefix = library_dir
+            else:
+                prefix = search_up(library_dir, *STDLIB_LANDMARKS)
+            if prefix and not stdlib_dir_was_set_in_config:
+                stdlib_dir = joinpath(prefix, STDLIB_SUBDIR)
 
 
     # Detect prefix by looking for zip file
