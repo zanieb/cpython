@@ -1,0 +1,3 @@
+Only set :envvar:`!_PYTHON_HOST_PLATFORM` for the build interpreter when cross
+compiling. Native builds using :option:`--with-build-python` can detect the native
+platform identifier when the variable is unset.
