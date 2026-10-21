@@ -1293,12 +1293,13 @@ AC_CACHE_CHECK([for -Wl,--no-as-needed], [ac_cv_wl_no_as_needed], [
   save_LDFLAGS="$LDFLAGS"
   AS_VAR_APPEND([LDFLAGS], [" -Wl,--no-as-needed"])
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
-    [NO_AS_NEEDED="-Wl,--no-as-needed"
-     ac_cv_wl_no_as_needed=yes],
-    [NO_AS_NEEDED=""
-     ac_cv_wl_no_as_needed=no])
+    [ac_cv_wl_no_as_needed=yes],
+    [ac_cv_wl_no_as_needed=no])
   LDFLAGS="$save_LDFLAGS"
 ])
+AS_VAR_IF([ac_cv_wl_no_as_needed], [yes],
+  [NO_AS_NEEDED="-Wl,--no-as-needed"],
+  [NO_AS_NEEDED=""])
 AC_SUBST([NO_AS_NEEDED])
 
 AC_MSG_CHECKING([for the Android API level])

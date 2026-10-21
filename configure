@@ -7528,11 +7528,9 @@ main (void)
 _ACEOF
 if ac_fn_c_try_link "$LINENO"
 then :
-  NO_AS_NEEDED="-Wl,--no-as-needed"
-     ac_cv_wl_no_as_needed=yes
+  ac_cv_wl_no_as_needed=yes
 else case e in #(
-  e) NO_AS_NEEDED=""
-     ac_cv_wl_no_as_needed=no ;;
+  e) ac_cv_wl_no_as_needed=no ;;
 esac
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam \
@@ -7543,6 +7541,13 @@ esac
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_wl_no_as_needed" >&5
 printf "%s\n" "$ac_cv_wl_no_as_needed" >&6; }
+if test "x$ac_cv_wl_no_as_needed" = xyes
+then :
+  NO_AS_NEEDED="-Wl,--no-as-needed"
+else case e in #(
+  e) NO_AS_NEEDED="" ;;
+esac
+fi
 
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for the Android API level" >&5
