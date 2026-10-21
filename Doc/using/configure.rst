@@ -1405,6 +1405,15 @@ the version of the cross compiled host Python.
 
    .. versionadded:: 3.11
 
+.. option:: _PYTHON_HOST_PLATFORM
+
+   Override the platform identifier used by :func:`sysconfig.get_platform`
+   when cross compiling. If unset or empty, :program:`configure` derives an
+   identifier from the host platform. An explicit value does not bypass host
+   platform validation or target-specific configuration.
+
+   .. versionadded:: 3.16
+
 .. option:: CONFIG_SITE=file
 
    An environment variable that points to a file with configure overrides.

@@ -1169,6 +1169,7 @@ PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
 MACHDEP
+_PYTHON_HOST_PLATFORM
 CC
 CFLAGS
 LDFLAGS
@@ -2026,6 +2027,9 @@ Some influential environment variables:
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
   MACHDEP     name for machine-dependent library files
+  _PYTHON_HOST_PLATFORM
+              override the platform identifier used by sysconfig when cross
+              compiling
   CC          C compiler command
   CFLAGS      C compiler flags
   LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
@@ -4707,7 +4711,10 @@ printf "%s\n" "$IPHONEOS_DEPLOYMENT_TARGET" >&6; }
 		MACHDEP="unknown"
 		as_fn_error $? "cross build not supported for $host" "$LINENO" 5
 	esac
-	_PYTHON_HOST_PLATFORM="$MACHDEP${_host_ident:+-$_host_ident}"
+	if test -z "$_PYTHON_HOST_PLATFORM"
+then :
+  _PYTHON_HOST_PLATFORM="$MACHDEP${_host_ident:+-$_host_ident}"
+fi
 fi
 
 # Some systems cannot stand _XOPEN_SOURCE being defined at all; they

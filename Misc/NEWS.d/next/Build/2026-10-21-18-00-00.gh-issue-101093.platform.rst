@@ -1,0 +1,2 @@
+Allow an explicit :envvar:`!_PYTHON_HOST_PLATFORM` value to override the
+platform identifier derived by :program:`configure` when cross compiling.
