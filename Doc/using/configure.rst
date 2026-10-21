@@ -1454,6 +1454,26 @@ Main build steps
   final ``python`` program.
 * C extensions are built by the Makefile (see :file:`Modules/Setup`).
 
+Disabling optional extension modules
+------------------------------------
+
+To disable an optional extension module, add a ``*disabled*`` section to
+:file:`Modules/Setup.local` in the build directory. Create the file if it does
+not exist. For example, to disable :mod:`!_tkinter`::
+
+   *disabled*
+   _tkinter
+
+This prevents the module from being built even if its dependencies are
+available. The marker applies to subsequent entries until another marker,
+such as ``*static*`` or ``*shared*``, appears. If the module already has an
+entry in :file:`Modules/Setup.local`, remove it or place the disabled entry
+first; the first entry for a module takes precedence.
+
+Run :program:`make` after editing the file. If the module was built previously,
+run :program:`make clean` before rebuilding to remove its old build artifacts.
+
+
 Main Makefile targets
 ---------------------
 
