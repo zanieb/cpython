@@ -673,6 +673,15 @@ Install Options
 
    .. versionadded:: 3.10
 
+.. option:: --disable-dependency-tracking
+
+   Disable compiler-generated header dependencies and use the manually maintained
+   header dependencies instead. By default, compilers that support dependency
+   files record the headers used by each object file, allowing the build to
+   identify the objects affected by a header change.
+
+   .. versionadded:: 3.16
+
 .. option:: --with-ensurepip=[upgrade|install|no]
 
    Select the :mod:`ensurepip` command run on Python installation:
@@ -1476,10 +1485,11 @@ all`` will build. The three choices are:
 
 Depending on the most recent source file changes, Make will rebuild
 any targets (object files and executables) deemed out-of-date,
-including running ``configure`` again if necessary. Source/target
-dependencies are many and maintained manually however, so Make
-sometimes doesn't have all the information necessary to correctly
-detect all targets which need to be rebuilt.  Depending on which
+including running ``configure`` again if necessary. Header dependencies are
+recorded during compilation when the compiler supports dependency files.
+Other dependencies, and header dependencies when compiler-generated dependencies
+are disabled or unsupported, are maintained manually. Make may therefore lack
+information needed to detect all targets which need to be rebuilt. Depending on which
 targets aren't rebuilt, you might experience a number of problems. If
 you have build or test problems which you can't otherwise explain,
 ``make clean && make`` should work around most dependency problems, at

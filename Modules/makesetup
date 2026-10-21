@@ -111,6 +111,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 	MODS=
 	SHAREDMODS=
 	OBJS=
+	COMPILE_OBJS=
 	LIBS=
 	LOCALLIBS=
 	BASELIBS=
@@ -243,6 +244,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 			*)   obj="$srcdir/$obj";;
 			esac
 			objs="$objs $obj"
+			COMPILE_OBJS="$COMPILE_OBJS $obj"
 			case $src in
 			glmodule.c) ;;
 			/*) ;;
@@ -254,12 +256,12 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 			no)
 				cc="$cc $cpps \$(PY_STDMODULE_CFLAGS) \$(CCSHARED)"
 				rule="$obj: $src \$(MODULE_${mods_upper}_DEPS) \$(MODULE_DEPS_SHARED) \$(PYTHON_HEADERS)"
-				rule="$rule; $cc -c $src -o $obj"
+				rule="$rule; $cc \$(C_DEPENDENCY_FLAGS) -c $src -o $obj"
 				;;
 			*)
 				cc="$cc $cpps \$(PY_BUILTIN_MODULE_CFLAGS)"
 				rule="$obj: $src \$(MODULE_${mods_upper}_DEPS) \$(MODULE_DEPS_STATIC) \$(PYTHON_HEADERS)"
-				rule="$rule; $cc -c $src -o $obj"
+				rule="$rule; $cc \$(C_DEPENDENCY_FLAGS) -c $src -o $obj"
 				;;
 			esac
 			echo "$rule" >>$rulesf
@@ -332,6 +334,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 		echo "s%_MODSHARED_NAMES_%$BUILT_SHARED%" >>$sedf
 		echo "s%_MODDISABLED_NAMES_%$DISABLED%" >>$sedf
 		echo "s%_MODOBJS_%$OBJS%" >>$sedf
+		echo "s%_MODCOMPILE_OBJS_%$COMPILE_OBJS%" >>$sedf
 		echo "s%_MODLIBS_%$LIBS%" >>$sedf
 		echo "/Definitions added by makesetup/r $sedr" >>$sedf
 		sed -f $sedf $makepre >Makefile
