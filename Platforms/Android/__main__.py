@@ -238,7 +238,13 @@ def download(url, cache_dir):
     out_path = cache_dir / basename(url)
     cache_dir.mkdir(parents=True, exist_ok=True)
     if not out_path.is_file():
-        run(["curl", "-Lf", "--retry", "5", "--retry-all-errors", "-o", out_path, url])
+        with TemporaryDirectory(dir=cache_dir, prefix=".download-") as tmp:
+            tmp_path = Path(tmp) / out_path.name
+            run([
+                "curl", "-Lf", "--retry", "5", "--retry-all-errors",
+                "-o", tmp_path, url,
+            ])
+            tmp_path.replace(out_path)
     else:
         print(f"Using cached version of {basename(url)}")
     return out_path

@@ -52,6 +52,7 @@ from datetime import datetime, timezone
 from os.path import basename, relpath
 from pathlib import Path
 from subprocess import CalledProcessError
+from tempfile import TemporaryDirectory
 
 EnvironmentT = dict[str, str]
 ArgsT = Sequence[str | Path]
@@ -397,16 +398,19 @@ def download(url: str, target_dir: Path) -> Path:
 
     out_path = target_path / basename(url)
     if not Path(out_path).is_file():
-        run([
-            "curl",
-            "-Lf",
-            "--retry",
-            "5",
-            "--retry-all-errors",
-            "-o",
-            out_path,
-            url,
-        ])
+        with TemporaryDirectory(dir=target_path, prefix=".download-") as tmp:
+            tmp_path = Path(tmp) / out_path.name
+            run([
+                "curl",
+                "-Lf",
+                "--retry",
+                "5",
+                "--retry-all-errors",
+                "-o",
+                tmp_path,
+                url,
+            ])
+            tmp_path.replace(out_path)
     else:
         print(f"Using cached version of {basename(url)}")
     return out_path
