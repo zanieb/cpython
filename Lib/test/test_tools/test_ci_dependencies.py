@@ -35,6 +35,12 @@ class DependencyTests(unittest.TestCase):
         recorded = self.snapshot()
         self.assertEqual(dependencies.check_record(self.snapshot(), recorded), [])
 
+    def test_checkout_line_endings(self):
+        recorded = self.snapshot()
+        for path in (self.source, self.lock):
+            path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+        self.assertEqual(dependencies.check_record(self.snapshot(), recorded), [])
+
     def test_source_change_requires_refresh(self):
         recorded = self.snapshot()
         self.source.write_text("example>=2\n")
@@ -74,7 +80,7 @@ class DependencyTests(unittest.TestCase):
     def test_bootstrap_matches_wheel(self):
         wheel = self.root / "Lib/ensurepip/_bundled/pip-1.0-py3-none-any.whl"
         wheel.parent.mkdir(parents=True)
-        wheel.write_bytes(b"bundled pip wheel")
+        wheel.write_bytes(b"bundled\r\npip wheel")
         bootstrap = self.root / "Tools/requirements-bootstrap.txt"
         bootstrap.parent.mkdir()
         sha256 = hashlib.sha256(wheel.read_bytes()).hexdigest()

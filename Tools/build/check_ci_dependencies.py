@@ -19,15 +19,21 @@ LOCK_INPUTS = {
 }
 
 
-def digest(path):
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def digest(path, *, normalize_newlines=False):
+    content = path.read_bytes()
+    if normalize_newlines:
+        content = content.replace(b"\r\n", b"\n")
+    return hashlib.sha256(content).hexdigest()
 
 
 def snapshot(root, inventory=LOCK_INPUTS):
     return {
         lock: {
-            "sha256": digest(root / lock),
-            "inputs": {source: digest(root / source) for source in sources},
+            "sha256": digest(root / lock, normalize_newlines=True),
+            "inputs": {
+                source: digest(root / source, normalize_newlines=True)
+                for source in sources
+            },
         }
         for lock, sources in inventory.items()
     }
