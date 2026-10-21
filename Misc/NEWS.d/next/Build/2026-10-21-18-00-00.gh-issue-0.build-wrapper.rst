@@ -1,3 +1,0 @@
-Add a ``write-python-for-build`` make target that creates a
-``python-for-build`` wrapper with the configured build interpreter and target
-sysconfig environment.
