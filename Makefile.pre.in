@@ -870,16 +870,40 @@ BOLT_BINARIES := @BOLT_BINARIES@
 BOLT_INSTRUMENT_FLAGS := @BOLT_INSTRUMENT_FLAGS@
 BOLT_APPLY_FLAGS := @BOLT_APPLY_FLAGS@
 
+# Update the configuration stamp when BOLT settings or the profiling task change.
+.PHONY: check-bolt-config
+check-bolt-config:
+
+profile-bolt-config-stamp: check-bolt-config
+	@printf '%s\n' \
+	  'BOLT_BINARIES=$(subst ','"'"',$(BOLT_BINARIES))' \
+	  'BOLT_INSTRUMENT_FLAGS=$(subst ','"'"',$(BOLT_INSTRUMENT_FLAGS))' \
+	  'BOLT_APPLY_FLAGS=$(subst ','"'"',$(BOLT_APPLY_FLAGS))' \
+	  'PROFILE_TASK=$(subst ','"'"',$(PROFILE_TASK))' > $@.tmp
+	@if cmp -s $@.tmp $@; then \
+	  rm -f $@.tmp; \
+	else \
+	  mv $@.tmp $@; \
+	fi
+
 .PHONY: clean-bolt
 clean-bolt:
+	# Restore pristine binaries before removing BOLT state.
+	for bin in $(BOLT_BINARIES); do \
+	  if test -e "$${bin}" && test -e "$${bin}.prebolt"; then \
+	    mv "$${bin}.prebolt" "$${bin}"; \
+	  fi; \
+	done
 	# Profile data.
 	rm -f *.fdata
 	# Pristine binaries before BOLT optimization.
 	rm -f *.prebolt
 	# BOLT instrumented binaries.
-	rm -f *.bolt_inst
+	rm -f *.bolt_inst *.bolt
+	rm -f profile-bolt-stamp profile-bolt-config-stamp profile-bolt-config-stamp.tmp
 
-profile-bolt-stamp: $(BUILDPYTHON)
+profile-bolt-stamp: $(BUILDPYTHON) profile-bolt-config-stamp
+	rm -f $@
 	# Ensure a pristine, pre-BOLT copy of the binary and no profile data from last run.
 	for bin in $(BOLT_BINARIES); do \
 	  prebolt="$${bin}.prebolt"; \
@@ -908,6 +932,11 @@ profile-bolt-stamp: $(BUILDPYTHON)
 	  mv "$${bin}.bolt" "$${bin}"; \
 	done
 	touch $@
+
+# The shared-library target also creates the versioned BOLT input as a side effect.
+ifneq ($(filter-out $(BUILDPYTHON),$(BOLT_BINARIES)),)
+profile-bolt-stamp: $(LDLIBRARY)
+endif
 
 .PHONY: bolt-opt
 bolt-opt:
@@ -972,6 +1001,8 @@ clinic-tests: check-clean-src $(srcdir)/Lib/test/clinic.test.c
 
 # Build the interpreter
 $(BUILDPYTHON):	Programs/python.o $(LINK_PYTHON_DEPS)
+	# A newly linked binary needs a new pristine copy for BOLT.
+	rm -f $@.prebolt
 	$(LINKCC) $(PY_CORE_EXE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS)
 
 platform: $(PYTHON_FOR_BUILD_DEPS) pybuilddir.txt
@@ -1002,6 +1033,7 @@ $(LIBRARY): $(LIBRARY_OBJS)
 	$(AR) $(ARFLAGS) $@ $(LIBRARY_OBJS)
 
 libpython$(LDVERSION).so: $(LIBRARY_OBJS) $(DTRACE_OBJS)
+	rm -f $(INSTSONAME).prebolt
 	# AIX Linker don't support "-h" option
 	if test "$(MACHDEP)" != "aix"; then \
 		$(BLDSHARED) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM); \
@@ -1016,10 +1048,12 @@ libpython3.so:	libpython$(LDVERSION).so
 	$(BLDSHARED) $(NO_AS_NEEDED) -o $@ -Wl,-h$@ $^
 
 libpython$(LDVERSION).dylib: $(LIBRARY_OBJS)
+	rm -f $@.prebolt
 	 $(CC) -dynamiclib $(PY_CORE_LDFLAGS) -undefined dynamic_lookup -Wl,-install_name,$(prefix)/lib/libpython$(LDVERSION).dylib -Wl,-compatibility_version,$(VERSION) -Wl,-current_version,$(VERSION) -o $@ $(LIBRARY_OBJS) $(DTRACE_OBJS) $(SHLIBS) $(LIBC) $(LIBM); \
 
 
 libpython$(VERSION).sl: $(LIBRARY_OBJS)
+	rm -f $@.prebolt
 	$(LDSHARED) -o $@ $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM)
 
 # List of exported symbols for AIX
@@ -3307,7 +3341,8 @@ profile-removal:
 	rm -f profile-bolt-stamp
 
 .PHONY: clean-profile
-clean-profile: clean-retain-profile clean-bolt
+clean-profile: clean-retain-profile
+	$(MAKE) clean-bolt
 	@if test @DEF_MAKE_ALL_RULE@ = profile-opt -o @DEF_MAKE_ALL_RULE@ = bolt-opt; then \
 		rm -f profile-gen-stamp profile-clean-stamp; \
 		$(MAKE) profile-removal; \

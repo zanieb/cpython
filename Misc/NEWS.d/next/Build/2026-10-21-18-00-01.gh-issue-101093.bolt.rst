@@ -1,0 +1,3 @@
+Invalidate saved BOLT inputs when binaries are relinked, and rerun BOLT when
+its flags or profiling task change. Restore pristine binaries when clearing
+BOLT state.

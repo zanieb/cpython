@@ -151,6 +151,8 @@ Tools/unicode/data/
 /profile-clean-stamp
 /profile-run-stamp
 /profile-bolt-stamp
+/profile-bolt-config-stamp
+/profile-bolt-config-stamp.tmp
 /profile-gen-stamp
 /pybuilddir.txt
 /pyconfig.h
