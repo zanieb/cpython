@@ -80,6 +80,19 @@ jobs:
         cat native-dependencies.json
     - name: Exercise ctypes and decimal
       run: ./python -m test -j2 test_ctypes test_decimal test_tools.test_native_deps test_tools.test_platform_deps
+    - name: Export managed dependency artifacts
+      if: matrix.dependencies == 'managed'
+      run: >-
+        python Tools/build/native_deps_artifact.py
+        --prefix .native-deps --output native-dependency-artifact
+    - name: Upload managed dependency artifacts
+      if: matrix.dependencies == 'managed'
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: native-dependency-artifact-${{ runner.os }}-${{ runner.arch }}
+        path: native-dependency-artifact/
+        if-no-files-found: error
+        retention-days: 14
     - name: Upload dependency diagnostics
       if: always()
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
