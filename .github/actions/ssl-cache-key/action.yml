@@ -1,0 +1,37 @@
+name: SSL cache key
+description: Fingerprint the recipe and toolchain used to build SSL libraries
+inputs:
+  recipe:
+    description: Workflow containing the library build invocation
+    required: true
+outputs:
+  key:
+    description: SHA-256 fingerprint of the build inputs
+    value: ${{ steps.fingerprint.outputs.key }}
+runs:
+  using: composite
+  steps:
+    - id: fingerprint
+      shell: bash
+      env:
+        RECIPE: ${{ inputs.recipe }}
+        LC_ALL: C
+      run: |
+        fingerprint=$({
+          printf '%s\n' "$ImageOS" "$ImageVersion" "$RUNNER_ARCH"
+          printf '%s\n' "${CC-}" "${CXX-}" "${CFLAGS-}" "${CPPFLAGS-}" "${LDFLAGS-}"
+          read -r -a compiler <<< "${CC:-cc}"
+          "${compiler[@]}" --version
+          "${compiler[@]}" -dumpmachine
+          read -r -a cxx_compiler <<< "${CXX:-c++}"
+          "${cxx_compiler[@]}" --version
+          cmake --version
+          perl -V:version
+          sha256sum "$RECIPE" \
+            .github/actions/ssl-cache-key/action.yml \
+            .github/workflows/posix-deps-apt.sh \
+            Tools/ssl/multissltests.py \
+            Tools/build/download_dependencies.py \
+            Tools/build/dependency-hashes.json
+        } | sha256sum | cut -d ' ' -f 1)
+        echo "key=$fingerprint" >> "$GITHUB_OUTPUT"

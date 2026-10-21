@@ -172,25 +172,10 @@ clean-venv:
 
 .PHONY: venv
 venv:
-	@if [ -d $(VENVDIR) ] ; then \
-		echo "venv already exists."; \
-		echo "To recreate it, remove it first with \`make clean-venv'."; \
-	else \
-		set -e; \
-		echo "Creating venv in $(VENVDIR)"; \
-		if $(UV) --version >/dev/null 2>&1; then \
-			$(UV) venv --python=$(PYTHON) $(VENVDIR); \
-			VIRTUAL_ENV=$(VENVDIR) $(UV) pip install -r $(REQUIREMENTS); \
-		else \
-			$(PYTHON) -m venv $(VENVDIR); \
-			$(VENVDIR)/bin/python3 -m pip install --require-hashes -r $(PIP_REQUIREMENTS); \
-			if [ -n "$(BUILD_REQUIREMENTS)" ]; then \
-				$(VENVDIR)/bin/python3 -m pip install --require-hashes --only-binary=:all: -r $(BUILD_REQUIREMENTS); \
-			fi; \
-			$(VENVDIR)/bin/python3 -m pip install $(PIP_OPTIONS) -r $(REQUIREMENTS); \
-		fi; \
-		echo "The venv has been created in the $(VENVDIR) directory"; \
-	fi
+	$(PYTHON) tools/create_venv.py --destination="$(VENVDIR)" \
+		--requirements="$(REQUIREMENTS)" --pip-requirements="$(PIP_REQUIREMENTS)" \
+		--build-requirements="$(BUILD_REQUIREMENTS)" \
+		--uv="$(UV)" --pip-options="$(PIP_OPTIONS)"
 
 .PHONY: lock
 lock:

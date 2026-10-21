@@ -120,10 +120,8 @@ jobs:
         persist-credentials: false
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        path: ~/.cache/pip
-        key: ubuntu-doc-${{ hashFiles('Doc/pylock.toml', 'Tools/requirements-bootstrap.txt', 'Tools/requirements-build.txt') }}
-        restore-keys: |
-          ubuntu-doc-
+        path: ~/.cache/pip/http-v2
+        key: ${{ runner.os }}-${{ runner.arch }}-doc-downloads-${{ hashFiles('Doc/pylock.toml', 'Tools/requirements-bootstrap.txt', 'Tools/requirements-build.txt') }}
     - name: 'Install Dependencies'
       run: sudo ./.github/workflows/posix-deps-apt.sh && sudo apt-get install --no-install-recommends wamerican
     - name: 'Configure CPython'

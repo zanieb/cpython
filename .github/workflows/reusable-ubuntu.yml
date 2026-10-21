@@ -57,12 +57,17 @@ jobs:
         echo "MULTISSL_DIR=${GITHUB_WORKSPACE}/multissl" >> "$GITHUB_ENV"
         echo "OPENSSL_DIR=${GITHUB_WORKSPACE}/multissl/openssl/${OPENSSL_VER}" >> "$GITHUB_ENV"
         echo "LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/multissl/openssl/${OPENSSL_VER}/lib" >> "$GITHUB_ENV"
+    - name: Fingerprint SSL build inputs
+      id: ssl-cache-key
+      uses: ./.github/actions/ssl-cache-key
+      with:
+        recipe: .github/workflows/reusable-ubuntu.yml
     - name: 'Restore OpenSSL build'
       id: cache-openssl
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ./multissl/openssl/${{ env.OPENSSL_VER }}
-        key: ${{ inputs.os }}-multissl-openssl-${{ env.OPENSSL_VER }}
+        key: ${{ runner.os }}-${{ runner.arch }}-multissl-openssl-${{ env.OPENSSL_VER }}-${{ steps.ssl-cache-key.outputs.key }}
     - name: Install OpenSSL
       if: steps.cache-openssl.outputs.cache-hit != 'true'
       run: python3 Tools/ssl/multissltests.py --steps=library --base-directory "$MULTISSL_DIR" --openssl "$OPENSSL_VER" --system Linux
