@@ -1,3 +1,0 @@
-Generate relative paths in the ``build-details.json`` installed by POSIX
-builds, so references remain valid when the installation and its dependencies
-move together.
