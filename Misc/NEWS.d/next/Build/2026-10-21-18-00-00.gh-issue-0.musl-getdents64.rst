@@ -1,0 +1,2 @@
+Fix building :mod:`subprocess` with musl headers that declare the
+``getdents64`` buffer as a pointer to ``struct dirent``.
