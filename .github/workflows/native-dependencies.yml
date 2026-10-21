@@ -1,0 +1,92 @@
+name: Native dependencies
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+    - '.github/workflows/native-dependencies.yml'
+    - '.github/workflows/posix-deps-apt.sh'
+    - 'Tools/build/dependencies.*'
+    - 'Tools/build/dependency_cache.py'
+    - 'Tools/build/native_deps*.py'
+    - 'Lib/test/test_tools/test_native_deps.py'
+    - 'Lib/test/test_tools/test_platform_deps.py'
+    - 'Platforms/Android/__main__.py'
+    - 'Platforms/Apple/__main__.py'
+    - 'configure*'
+    - 'Modules/_ctypes/**'
+    - 'Modules/_decimal/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-dependencies-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-dependencies:
+    name: Linux / ${{ matrix.dependencies }} libraries
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dependencies: [system, managed]
+    env:
+      PYTHONSTRICTEXTENSIONBUILD: '1'
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: '3.12'
+    - name: Install build dependencies
+      run: sudo .github/workflows/posix-deps-apt.sh
+    - name: Exercise dependency recovery
+      run: |
+        python Lib/test/test_tools/test_platform_deps.py
+        python Lib/test/test_tools/test_native_deps.py
+    - name: Cache verified source archives
+      if: matrix.dependencies == 'managed'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: .native-sources
+        key: native-sources-${{ hashFiles('Tools/build/dependencies.json') }}
+        restore-keys: native-sources-
+    - name: Build managed libraries
+      if: matrix.dependencies == 'managed'
+      run: |
+        python Tools/build/native_deps.py build libffi mpdecimal \
+          --prefix "$GITHUB_WORKSPACE/.native-deps" --cache-dir .native-sources
+        python Tools/build/native_deps.py build libffi mpdecimal \
+          --prefix "$GITHUB_WORKSPACE/.native-deps" --cache-dir .native-sources --offline
+        echo "PKG_CONFIG_PATH=$GITHUB_WORKSPACE/.native-deps/lib/pkgconfig" >> "$GITHUB_ENV"
+    - name: Configure CPython
+      run: ./configure --with-pydebug
+    - name: Build CPython
+      run: make -j2
+    - name: Report selected libraries
+      env:
+        DEPENDENCY_SOURCE: ${{ matrix.dependencies }}
+      run: |
+        make pythoninfo > pythoninfo.txt
+        if [ "$DEPENDENCY_SOURCE" = managed ]; then
+          ./python Tools/build/native_deps_report.py --prefix .native-deps > native-dependencies.json
+        else
+          ./python Tools/build/native_deps_report.py > native-dependencies.json
+        fi
+        cat native-dependencies.json
+    - name: Exercise ctypes and decimal
+      run: ./python -m test -j2 test_ctypes test_decimal test_tools.test_native_deps test_tools.test_platform_deps
+    - name: Upload dependency diagnostics
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: native-dependencies-${{ matrix.dependencies }}
+        path: |
+          config.log
+          pythoninfo.txt
+          native-dependencies.json
+        if-no-files-found: warn
