@@ -150,7 +150,7 @@ jobs:
     - name: 'Install build dependencies'
       run: |
         make -C Doc/ venv
-        python -m pip install epubcheck
+        python -m pip install -r Doc/pylock.epubcheck.toml
     - name: 'Build EPUB documentation'
       run: make -C Doc/ PYTHON=../python epub
     - name: 'Run epubcheck'

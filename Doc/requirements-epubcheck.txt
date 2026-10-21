@@ -1,0 +1,2 @@
+# Requirements for the EPUB validator used by the documentation workflow.
+epubcheck
