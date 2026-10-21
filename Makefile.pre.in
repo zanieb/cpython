@@ -1837,7 +1837,7 @@ regen-global-objects: $(srcdir)/Tools/build/generate_global_objects.py clinic
 .PHONY: regen-abidump
 regen-abidump: all
 	@$(MKDIR_P) $(srcdir)/Doc/data/
-	abidw "libpython$(LDVERSION).so" --no-architecture --out-file $(srcdir)/Doc/data/python$(LDVERSION).abi.new
+	abidw "libpython$(LDVERSION).so" --no-architecture --no-show-locs --out-file $(srcdir)/Doc/data/python$(LDVERSION).abi.new
 	@$(UPDATE_FILE) --create $(srcdir)/Doc/data/python$(LDVERSION).abi $(srcdir)/Doc/data/python$(LDVERSION).abi.new
 
 .PHONY: check-abidump
