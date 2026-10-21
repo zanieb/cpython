@@ -36,6 +36,7 @@ echo.                 overrides -c and -d
 echo.  --disable-gil  Enable support for running without the GIL.
 echo.  --test-marker  Enable the test marker within the build.
 echo.  --regen        Regenerate all opcodes, grammar and tokens.
+echo.  --no-tests     Do not build test projects.
 echo.  --experimental-jit          Enable the experimental just-in-time compiler.
 echo.  --experimental-jit-off      Ditto but off by default (PYTHON_JIT=1 enables).
 echo.  --experimental-jit-interpreter  Enable the experimental Tier 2 interpreter.
@@ -94,6 +95,7 @@ if "%~1"=="--disable-gil" (set UseDisableGil=true) & shift & goto CheckOpts
 if "%~1"=="--test-marker" (set UseTestMarker=true) & shift & goto CheckOpts
 if "%~1"=="-V" shift & goto Version
 if "%~1"=="--regen" (set Regen=true) & shift & goto CheckOpts
+if "%~1"=="--no-tests" (set IncludeTests=false) & shift & goto CheckOpts
 if "%~1"=="--experimental-jit" (set UseJIT=true) & (set UseTIER2=1) & shift & goto CheckOpts
 if "%~1"=="--experimental-jit-off" (set UseJIT=true) & (set UseTIER2=3) & shift & goto CheckOpts
 if "%~1"=="--experimental-jit-interpreter" (set UseTIER2=4) & shift & goto CheckOpts

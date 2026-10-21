@@ -9,7 +9,7 @@
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
     <IncludeExtensions Condition="'$(IncludeExtensions)' == ''">true</IncludeExtensions>
     <IncludeExternals Condition="'$(IncludeExternals)' == ''">true</IncludeExternals>
-    <IncludeTests Condition="'$(IncludeTest)' == ''">true</IncludeTests>
+    <IncludeTests Condition="'$(IncludeTests)' == ''">true</IncludeTests>
     <IncludeCTypes Condition="'$(IncludeCTypes)' == ''">true</IncludeCTypes>
     <IncludeSSL Condition="'$(IncludeSSL)' == ''">true</IncludeSSL>
     <IncludeTkinter Condition="'$(IncludeTkinter)' == ''">true</IncludeTkinter>
