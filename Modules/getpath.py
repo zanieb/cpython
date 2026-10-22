@@ -562,9 +562,14 @@ else:
             stdlib_dir = None
 
 
-    # First try to detect prefix by looking alongside our runtime library, if known
+    # First try to detect prefix by searching from our runtime library, if known.
     if library and not prefix:
         library_dir = dirname(library)
+        if os_name != 'nt':
+            try:
+                library_dir = abspath(library_dir)
+            except OSError:
+                pass
         if ZIP_LANDMARK:
             if os_name == 'nt':
                 # QUIRK: Windows does not search up for ZIP file
@@ -573,10 +578,13 @@ else:
             else:
                 prefix = search_up(library_dir, ZIP_LANDMARK)
         if STDLIB_SUBDIR and STDLIB_LANDMARKS and not prefix:
-            if any(isfile(joinpath(library_dir, f)) for f in STDLIB_LANDMARKS):
-                prefix = library_dir
-                if not stdlib_dir_was_set_in_config:
-                    stdlib_dir = joinpath(prefix, STDLIB_SUBDIR)
+            if os_name == 'nt':
+                if any(isfile(joinpath(library_dir, f)) for f in STDLIB_LANDMARKS):
+                    prefix = library_dir
+            else:
+                prefix = search_up(library_dir, *STDLIB_LANDMARKS)
+            if prefix and not stdlib_dir_was_set_in_config:
+                stdlib_dir = joinpath(prefix, STDLIB_SUBDIR)
 
 
     # Detect prefix by looking for zip file

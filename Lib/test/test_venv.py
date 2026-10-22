@@ -1141,6 +1141,17 @@ class BasicTest(BaseTest):
             ld_library_path = os.path.join(sys.base_exec_prefix, "lib")
         if not ld_library_path or sysconfig.is_python_build():
             ld_library_path = os.path.abspath(os.path.dirname(sys.executable))
+        if (sysconfig.get_config_var('Py_ENABLE_SHARED')
+                and sys.platform != 'cygwin'):
+            # Startup can search relative to libpython before the executable.
+            # Load a copy from the temporary installation to select its
+            # standard library.
+            shared_libdir = os.path.join(non_installed_dir, 'lib')
+            os.makedirs(shared_libdir, exist_ok=True)
+            instsoname = sysconfig.get_config_var('INSTSONAME')
+            shutil.copy2(os.path.join(ld_library_path, instsoname),
+                         os.path.join(shared_libdir, instsoname))
+            ld_library_path = os.pathsep.join((shared_libdir, ld_library_path))
         if sys.platform == 'darwin':
             ld_library_path_env = "DYLD_LIBRARY_PATH"
         else:
