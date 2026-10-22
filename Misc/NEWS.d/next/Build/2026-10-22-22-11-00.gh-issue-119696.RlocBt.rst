@@ -1,0 +1,3 @@
+Support :option:`--enable-bolt` with :option:`--enable-relocatable`
+by applying the build-tree profiles to the separately linked installation
+interpreter and, when applicable, shared library.
