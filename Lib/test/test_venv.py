@@ -1136,6 +1136,9 @@ class BasicTest(BaseTest):
         # LD_LIBRARY_PATH so the non-installed python can find and link
         # libpython.so
         ld_library_path = sysconfig.get_config_var("LIBDIR")
+        if (sysconfig.get_config_var("RELOCATABLE") == "yes"
+                and not sysconfig.get_config_var("PYTHONFRAMEWORK")):
+            ld_library_path = os.path.join(sys.base_exec_prefix, "lib")
         if not ld_library_path or sysconfig.is_python_build():
             ld_library_path = os.path.abspath(os.path.dirname(sys.executable))
         if sys.platform == 'darwin':
@@ -1154,7 +1157,11 @@ class BasicTest(BaseTest):
         # correct zip path in pythonpath.
         target_python = os.path.join(self.env_dir, self.bindir, python_exe)
         cmd = [target_python, '-S', '-c', 'import sys; print(sys.path)']
-        out, err = check_output(cmd)
+        # This interpreter also depends on libraries outside the incomplete
+        # installation used by this test.
+        with EnvironmentVarGuard() as env:
+            env[ld_library_path_env] = ld_library_path
+            out, err = check_output(cmd)
         self.assertTrue(zip_landmark.encode() in out)
 
     @requireVenvCreate
