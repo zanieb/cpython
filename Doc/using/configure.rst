@@ -1081,18 +1081,23 @@ Linker options
 
       This feature is under active development. Do not use it in production.
 
-   Currently, this sets relative runtime library paths on Linux and for
-   non-framework macOS builds. Framework relocation is not implemented yet.
-   Combining this option with :option:`--enable-framework` is an error.
+   Currently, this sets relative runtime library paths on Linux and macOS,
+   including macOS framework builds.
 
    Move the installation as a unit. It must use the default ``bin`` and ``lib``
    directories under a common prefix. :option:`--with-platlibdir` may select
    a different directory name for the standard library, but not a nested path.
    On Linux, these paths use ``DT_RPATH``.
 
-   Copied virtual environments from non-framework shared builds require
-   directory symlinks to the base installation's libraries. Virtual environments
-   depend on their base installation and must be recreated if it moves.
+   When :mod:`venv` copies an interpreter from a shared or framework build,
+   it creates a symlink to the base library directory or the directory
+   containing the framework. This requires filesystem support for symlinks
+   even with ``--copies``. Virtual environments depend on their base
+   installation and must be recreated if it moves.
+
+   A macOS framework can be moved as a unit, including its internal
+   ``Resources/Python.app``. External command symlinks and application launchers
+   are not rewritten; update any that point to the original location.
 
    This option does not bundle dependencies, relocate their data files, or
    rewrite script shebangs and build-time paths in :mod:`sysconfig`.

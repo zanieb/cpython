@@ -6,6 +6,9 @@ on:
       os:
         type: string
         required: true
+      framework:
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -22,6 +25,7 @@ jobs:
       run:
         shell: bash
     env:
+      FRAMEWORK: ${{ inputs.framework }}
       PYTHONSTRICTEXTENSIONBUILD: 1
       HOMEBREW_NO_ANALYTICS: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
@@ -46,24 +50,16 @@ jobs:
         echo "GDBM_CFLAGS=-I$(brew --prefix gdbm)/include" >> "$GITHUB_ENV"
         echo "GDBM_LIBS=-L$(brew --prefix gdbm)/lib -lgdbm" >> "$GITHUB_ENV"
         echo "OPENSSL_DIR=$(brew --prefix openssl@3.5)" >> "$GITHUB_ENV"
-    - name: Reject unsupported framework relocation
-      if: runner.os == 'macOS'
-      run: |
-        mkdir "$RUNNER_TEMP/framework-configure"
-        cd "$RUNNER_TEMP/framework-configure"
-        if "$GITHUB_WORKSPACE/configure" \
-          --enable-framework="$RUNNER_TEMP/framework-install" \
-          --enable-relocatable --with-openssl="$OPENSSL_DIR" > configure.log 2>&1; then
-          cat configure.log
-          exit 1
-        fi
-        cat configure.log
-        grep -F 'does not support framework builds yet' configure.log
     - name: Configure CPython
       run: |
         mkdir "$BUILD_DIR"
         cd "$BUILD_DIR"
-        configure_args=(--prefix="$INSTALL_DIR" --enable-shared --enable-relocatable)
+        configure_args=(--prefix="$INSTALL_DIR" --enable-relocatable)
+        if [ -n "$FRAMEWORK" ]; then
+          configure_args+=(--enable-framework="$INSTALL_DIR/Library/Frameworks" --with-framework-name="$FRAMEWORK")
+        else
+          configure_args+=(--enable-shared)
+        fi
         if [ -n "${OPENSSL_DIR:-}" ]; then
           configure_args+=(--with-openssl="$OPENSSL_DIR")
         fi
@@ -100,7 +96,15 @@ jobs:
       run: |
         unset LD_LIBRARY_PATH LD_PRELOAD
         unset DYLD_LIBRARY_PATH DYLD_FALLBACK_LIBRARY_PATH DYLD_INSERT_LIBRARIES
-        installed_python="$INSTALL_DIR/bin/python3"
+        unset DYLD_FRAMEWORK_PATH DYLD_FALLBACK_FRAMEWORK_PATH
+        export PYTHON_PREFIX="$INSTALL_DIR"
+        if [ -n "$FRAMEWORK" ]; then
+          framework_dir="$INSTALL_DIR/Library/Frameworks/$FRAMEWORK.framework"
+          framework_version=$(readlink "$framework_dir/Versions/Current")
+          export PYTHON_PREFIX="$framework_dir/Versions/$framework_version"
+          "$PYTHON_PREFIX/Resources/Python.app/Contents/MacOS/$FRAMEWORK" -I -c 'import ssl, ctypes; print("Direct app launch succeeded")'
+        fi
+        installed_python="$PYTHON_PREFIX/bin/python3"
         "$installed_python" -I - <<'PY'
         import os
         import subprocess
@@ -109,7 +113,7 @@ jobs:
         import tempfile
         import venv
 
-        prefix = os.path.realpath(os.environ['INSTALL_DIR'])
+        prefix = os.path.realpath(os.environ['PYTHON_PREFIX'])
         assert os.path.realpath(sys.prefix) == prefix, sys.prefix
         assert sys.exec_prefix == sys.prefix, sys.exec_prefix
         assert sysconfig.get_config_var('RELOCATABLE') == 'yes'
