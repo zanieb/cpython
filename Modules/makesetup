@@ -279,6 +279,9 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
 			rule="$file: $objs \$(MODULE_${mods_upper}_LDEPS)"
 			rule="$rule; \$(BLDSHARED) $objs $libs \$(MODULE_LDFLAGS_SHARED) -o $file"
 			echo "$rule" >>$rulesf
+			rule="\$(RELOCATABLE_DIR)/$file: $objs \$(MODULE_${mods_upper}_LDEPS)"
+			rule="$rule; @mkdir -p \$(@D); \$(BLDSHARED) $objs $libs \$(MODULE_LDFLAGS_SHARED) \$(RELOCATABLE_EXTENSION_LDFLAGS) -o \$@"
+			echo "$rule" >>$rulesf
 		done
 	done
 

@@ -2372,9 +2372,11 @@ this is invalid python code
                 os.symlink(instsoname, os.path.join(lib_dir, ldlibrary))
 
             env = os.environ.copy()
-            ld_library_path = env.get('LD_LIBRARY_PATH')
-            env['LD_LIBRARY_PATH'] = lib_dir if not ld_library_path else (
-                lib_dir + os.pathsep + ld_library_path)
+            # Preload the copy even when the interpreter's RPATH takes
+            # precedence over LD_LIBRARY_PATH.
+            ld_preload = env.get('LD_PRELOAD')
+            env['LD_PRELOAD'] = copied_libpython if not ld_preload else (
+                copied_libpython + os.pathsep + ld_preload)
 
             self._run_remote_exec_with_deleted_mapping(copied_libpython,
                                                        env=env)

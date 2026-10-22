@@ -61,6 +61,10 @@ DSYMUTIL_PATH=  @DSYMUTIL_PATH@
 
 GNULD=		@GNULD@
 RELOCATABLE=	@RELOCATABLE@
+RELOCATABLE_PYTHON_LDFLAGS=@RELOCATABLE_PYTHON_LDFLAGS@
+RELOCATABLE_LIBPYTHON_LDFLAGS=@RELOCATABLE_LIBPYTHON_LDFLAGS@
+RELOCATABLE_EXTENSION_LDFLAGS=@RELOCATABLE_EXTENSION_LDFLAGS@
+RELOCATABLE_LIBPYTHON_INSTALL_NAME=@RELOCATABLE_LIBPYTHON_INSTALL_NAME@
 
 # Shell used by make (some versions default to the login shell, which is bad)
 SHELL=		/bin/sh -e
@@ -312,6 +316,22 @@ LIBOBJS=	@LIBOBJS@
 
 PYTHON=		python$(EXE)
 BUILDPYTHON=	python$(BUILDEXE)
+
+# Build-tree programs run with RUNSHARED where needed. Install variants need
+# runtime paths relative to their installed locations.
+RELOCATABLE_DIR=build/relocatable
+INSTALL_PYTHON=$(BUILDPYTHON)
+INSTALL_LDLIBRARY=$(LDLIBRARY)
+INSTALL_PY3LIBRARY=$(PY3LIBRARY)
+INSTALL_SHAREDMODS=$(SHAREDMODS)
+ifeq ($(RELOCATABLE),yes)
+INSTALL_PYTHON=$(RELOCATABLE_DIR)/$(BUILDPYTHON)
+INSTALL_SHAREDMODS=$(addprefix $(RELOCATABLE_DIR)/,$(SHAREDMODS))
+ifeq ($(PY_ENABLE_SHARED),1)
+INSTALL_LDLIBRARY=$(RELOCATABLE_DIR)/$(LDLIBRARY)
+INSTALL_PY3LIBRARY=$(addprefix $(RELOCATABLE_DIR)/,$(PY3LIBRARY))
+endif
+endif
 
 HOSTRUNNER= @HOSTRUNNER@
 
@@ -788,7 +808,8 @@ list-targets:
 
 .PHONY: build_all
 build_all:	check-clean-src check-app-store-compliance $(BUILDPYTHON) platform sharedmods \
-		gdbhooks Programs/_testembed scripts checksharedmods rundsymutil $(BUILD_DETAILS)
+		gdbhooks Programs/_testembed scripts checksharedmods rundsymutil $(BUILD_DETAILS) \
+		$(INSTALL_PYTHON) $(INSTALL_LDLIBRARY) $(INSTALL_PY3LIBRARY) $(INSTALL_SHAREDMODS)
 
 .PHONY: build_wasm
 build_wasm: check-clean-src $(BUILDPYTHON) platform sharedmods \
@@ -866,6 +887,10 @@ profile-opt: profile-run-stamp
 
 # List of binaries that BOLT runs on.
 BOLT_BINARIES := @BOLT_BINARIES@
+ifeq ($(RELOCATABLE),yes)
+# Optimize libraries before the interpreter, which depends on their timestamps.
+RELOCATABLE_BOLT_BINARIES = $(addprefix $(RELOCATABLE_DIR)/,$(filter-out $(BUILDPYTHON),$(BOLT_BINARIES)) $(BUILDPYTHON))
+endif
 
 BOLT_INSTRUMENT_FLAGS := @BOLT_INSTRUMENT_FLAGS@
 BOLT_APPLY_FLAGS := @BOLT_APPLY_FLAGS@
@@ -875,13 +900,13 @@ clean-bolt:
 	# Profile data.
 	rm -f *.fdata
 	# Pristine binaries before BOLT optimization.
-	rm -f *.prebolt
+	rm -f *.prebolt $(RELOCATABLE_DIR)/*.prebolt
 	# BOLT instrumented binaries.
 	rm -f *.bolt_inst
 
 profile-bolt-stamp: $(BUILDPYTHON)
 	# Ensure a pristine, pre-BOLT copy of the binary and no profile data from last run.
-	for bin in $(BOLT_BINARIES); do \
+	for bin in $(BOLT_BINARIES) $(RELOCATABLE_BOLT_BINARIES); do \
 	  prebolt="$${bin}.prebolt"; \
 	  if [ -e "$${prebolt}" ]; then \
 	    echo "Restoring pre-BOLT binary $${prebolt}"; \
@@ -907,6 +932,14 @@ profile-bolt-stamp: $(BUILDPYTHON)
 	  @LLVM_BOLT@ "$${bin}.prebolt" -o "$${bin}.bolt" -data="$${bin}.fdata" $(BOLT_APPLY_FLAGS); \
 	  mv "$${bin}.bolt" "$${bin}"; \
 	done
+	# Install variants are linked from the same objects, so reuse the function profiles.
+	for bin in $(RELOCATABLE_BOLT_BINARIES); do \
+	  @LLVM_BOLT@ "$${bin}.prebolt" -o "$${bin}.bolt" -data="$${bin##*/}.fdata" $(BOLT_APPLY_FLAGS); \
+	  mv "$${bin}.bolt" "$${bin}"; \
+	done
+	if test "$(RELOCATABLE)" = yes && test -n "$(filter $(INSTSONAME),$(BOLT_BINARIES))"; then \
+	  $(LN) -f $(RELOCATABLE_DIR)/$(INSTSONAME) $(INSTALL_LDLIBRARY); \
+	fi
 	touch $@
 
 .PHONY: bolt-opt
@@ -974,6 +1007,10 @@ clinic-tests: check-clean-src $(srcdir)/Lib/test/clinic.test.c
 $(BUILDPYTHON):	Programs/python.o $(LINK_PYTHON_DEPS)
 	$(LINKCC) $(PY_CORE_EXE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS)
 
+$(RELOCATABLE_DIR)/$(BUILDPYTHON): Programs/python.o $(LINK_PYTHON_DEPS) $(INSTALL_LDLIBRARY)
+	@mkdir -p $(@D)
+	$(LINKCC) $(PY_CORE_EXE_LDFLAGS) $(LINKFORSHARED) $(RELOCATABLE_PYTHON_LDFLAGS) -L$(RELOCATABLE_DIR) -o $@ Programs/python.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS)
+
 platform: $(PYTHON_FOR_BUILD_DEPS) pybuilddir.txt
 	$(RUNSHARED) $(PYTHON_FOR_BUILD) -c 'import sys ; from sysconfig import get_platform ; print("%s-%d.%d" % (get_platform(), *sys.version_info[:2]))' >platform
 
@@ -1018,6 +1055,18 @@ libpython3.so:	libpython$(LDVERSION).so
 libpython$(LDVERSION).dylib: $(LIBRARY_OBJS)
 	 $(CC) -dynamiclib $(PY_CORE_LDFLAGS) -undefined dynamic_lookup -Wl,-install_name,$(prefix)/lib/libpython$(LDVERSION).dylib -Wl,-compatibility_version,$(VERSION) -Wl,-current_version,$(VERSION) -o $@ $(LIBRARY_OBJS) $(DTRACE_OBJS) $(SHLIBS) $(LIBC) $(LIBM); \
 
+
+$(RELOCATABLE_DIR)/libpython$(LDVERSION).so: $(LIBRARY_OBJS) $(DTRACE_OBJS)
+	@mkdir -p $(@D)
+	$(BLDSHARED) $(RELOCATABLE_LIBPYTHON_LDFLAGS) -Wl,-h$(INSTSONAME) -o $(RELOCATABLE_DIR)/$(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM)
+	$(LN) -f $(RELOCATABLE_DIR)/$(INSTSONAME) $@
+
+$(RELOCATABLE_DIR)/libpython3.so: $(RELOCATABLE_DIR)/libpython$(LDVERSION).so
+	$(BLDSHARED) $(RELOCATABLE_LIBPYTHON_LDFLAGS) $(NO_AS_NEEDED) -o $@ -Wl,-hlibpython3.so $^
+
+$(RELOCATABLE_DIR)/libpython$(LDVERSION).dylib: $(LIBRARY_OBJS)
+	@mkdir -p $(@D)
+	$(CC) -dynamiclib $(PY_CORE_LDFLAGS) $(RELOCATABLE_LIBPYTHON_LDFLAGS) -undefined dynamic_lookup -Wl,-install_name,$(RELOCATABLE_LIBPYTHON_INSTALL_NAME) -Wl,-compatibility_version,$(VERSION) -Wl,-current_version,$(VERSION) -o $@ $(LIBRARY_OBJS) $(DTRACE_OBJS) $(SHLIBS) $(LIBC) $(LIBM)
 
 libpython$(VERSION).sl: $(LIBRARY_OBJS)
 	$(LDSHARED) -o $@ $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM)
@@ -2394,7 +2443,7 @@ sharedinstall: all
 			else    true; \
 			fi; \
 		done
-		@for i in X $(SHAREDMODS); do \
+		@for i in X $(INSTALL_SHAREDMODS); do \
 		  if test $$i != X; then \
 		    echo $(INSTALL_SHARED) $$i $(DESTSHARED)/`basename $$i`; \
 		    $(INSTALL_SHARED) $$i $(DESTDIR)$(DESTSHARED)/`basename $$i`; \
@@ -2408,7 +2457,7 @@ sharedinstall: all
 # Install the interpreter with $(VERSION) affixed
 # This goes into $(exec_prefix)
 .PHONY: altbininstall
-altbininstall: $(BUILDPYTHON) @FRAMEWORKPYTHONW@
+altbininstall: all @FRAMEWORKPYTHONW@
 	@for i in $(BINDIR) $(LIBDIR); \
 	do \
 		if test ! -d $(DESTDIR)$$i; then \
@@ -2418,7 +2467,7 @@ altbininstall: $(BUILDPYTHON) @FRAMEWORKPYTHONW@
 		fi; \
 	done
 	if test "$(PYTHONFRAMEWORKDIR)" = "no-framework" ; then \
-		$(INSTALL_PROGRAM) $(BUILDPYTHON) $(DESTDIR)$(BINDIR)/python$(LDVERSION)$(EXE); \
+		$(INSTALL_PROGRAM) $(INSTALL_PYTHON) $(DESTDIR)$(BINDIR)/python$(LDVERSION)$(EXE); \
 	else \
 		$(INSTALL_PROGRAM) $(STRIPFLAG) Mac/pythonw $(DESTDIR)$(BINDIR)/python$(LDVERSION)$(EXE); \
 	fi
@@ -2433,13 +2482,13 @@ altbininstall: $(BUILDPYTHON) @FRAMEWORKPYTHONW@
 			if test -n "$(DLLLIBRARY)" ; then \
 				$(INSTALL_SHARED) $(DLLLIBRARY) $(DESTDIR)$(BINDIR); \
 			else \
-				$(INSTALL_SHARED) $(LDLIBRARY) $(DESTDIR)$(LIBDIR)/$(INSTSONAME); \
+				$(INSTALL_SHARED) $(INSTALL_LDLIBRARY) $(DESTDIR)$(LIBDIR)/$(INSTSONAME); \
 				if test $(LDLIBRARY) != $(INSTSONAME); then \
 					(cd $(DESTDIR)$(LIBDIR); $(LN) -sf $(INSTSONAME) $(LDLIBRARY)) \
 				fi \
 			fi; \
 			if test -n "$(PY3LIBRARY)"; then \
-				$(INSTALL_SHARED) $(PY3LIBRARY) $(DESTDIR)$(LIBDIR)/$(PY3LIBRARY); \
+				$(INSTALL_SHARED) $(INSTALL_PY3LIBRARY) $(DESTDIR)$(LIBDIR)/$(PY3LIBRARY); \
 			fi; \
 		else	true; \
 		fi; \
