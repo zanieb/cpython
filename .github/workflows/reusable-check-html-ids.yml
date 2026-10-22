@@ -57,7 +57,8 @@ jobs:
           from pathlib import Path
           root = Path(os.environ['MERGE_BASE_DIR'])
           digest = hashlib.sha256()
-          for name in ('Doc/pylock.toml', 'Doc/requirements.txt', 'Doc/Makefile',
+          for name in ('Doc/pylock.toml', 'Doc/requirements.txt', 'Doc/requirements.in',
+                       'Doc/constraints.txt', 'Doc/Makefile',
                        'Doc/tools/create_venv.py', 'Tools/requirements-bootstrap.txt'):
               path = root / name
               if path.is_file():

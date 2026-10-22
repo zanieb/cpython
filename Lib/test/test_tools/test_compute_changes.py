@@ -73,7 +73,7 @@ class TestProcessChangedFiles(unittest.TestCase):
                 ))
 
     def test_hypothesis_dependencies(self):
-        for name in ("requirements-hypothesis.txt", "pylock.hypothesis.toml"):
+        for name in ("requirements-hypothesis.in", "pylock.hypothesis.toml"):
             with self.subTest(name=name):
                 result = process_changed_files({Path("Tools") / name})
                 self.assertEqual(result, Outputs(run_tests=True, run_ubuntu=True))

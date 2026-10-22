@@ -52,7 +52,7 @@ DEPENDENCY_CONSUMERS = {
     Path("Tools/requirements-bootstrap.txt"): frozenset({"docs", "ubuntu"}),
     Path("Tools/requirements-build.in"): frozenset({"docs", "ubuntu"}),
     Path("Tools/requirements-build.txt"): frozenset({"docs", "ubuntu"}),
-    Path("Tools/requirements-hypothesis.txt"): frozenset({"ubuntu"}),
+    Path("Tools/requirements-hypothesis.in"): frozenset({"ubuntu"}),
     Path("Tools/pylock.hypothesis.toml"): frozenset({"ubuntu"}),
     Path("Tools/build/dependency-hashes.json"): frozenset({
         "android", "ios", "ubuntu", "windows",

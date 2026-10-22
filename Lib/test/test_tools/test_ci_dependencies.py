@@ -3,14 +3,17 @@
 import hashlib
 import importlib
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from test.test_tools import imports_under_tool, skip_if_missing
 
 skip_if_missing("build")
 with imports_under_tool("build"):
     dependencies = importlib.import_module("check_ci_dependencies")
+    updater = importlib.import_module("update_ci_dependencies")
 
 
 class DependencyTests(unittest.TestCase):
@@ -18,7 +21,7 @@ class DependencyTests(unittest.TestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         self.root = Path(directory.name)
-        self.source = self.root / "requirements.txt"
+        self.source = self.root / "requirements.in"
         self.source.write_text("example==1.0\n", newline="\n")
         self.lock = self.root / "pylock.toml"
         self.lock.write_text(
@@ -27,7 +30,7 @@ class DependencyTests(unittest.TestCase):
             'hashes = {sha256 = "' + "a" * 64 + '"}}]\n',
             newline="\n",
         )
-        self.inventory = {"pylock.toml": ("requirements.txt",)}
+        self.inventory = {"pylock.toml": ("requirements.in",)}
 
     def snapshot(self):
         return dependencies.snapshot(self.root, self.inventory)
@@ -73,6 +76,15 @@ class DependencyTests(unittest.TestCase):
         errors = dependencies.check_python_locks(self.root, self.inventory)
         self.assertTrue(any("missing direct pin example==2.0" in e for e in errors))
 
+    def test_bare_direct_requirement(self):
+        self.source.write_text("example\n")
+        self.assertEqual(
+            dependencies.check_python_locks(self.root, self.inventory), [],
+        )
+        self.source.write_text("missing\n")
+        errors = dependencies.check_python_locks(self.root, self.inventory)
+        self.assertTrue(any("missing direct requirement missing" in e for e in errors))
+
     def test_missing_artifact_hash(self):
         self.lock.write_text(self.lock.read_text().replace("a" * 64, "invalid"))
         errors = dependencies.check_python_locks(self.root, self.inventory)
@@ -99,6 +111,40 @@ class DependencyTests(unittest.TestCase):
         sha256 = hashlib.sha256(wheel.read_bytes()).hexdigest()
         bootstrap.write_text(f"pip==1.0 --hash=sha256:{sha256}\n")
         self.assertTrue(dependencies.check_bootstrap(self.root))
+
+
+class RegenerationTests(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name)
+        self.lock = self.root / "Tools/pylock.dev.toml"
+        self.lock.parent.mkdir()
+        self.lock.write_bytes(b"committed lock\n")
+
+    def test_failed_compile_keeps_committed_lock(self):
+        def fail(command, **kwargs):
+            output = Path(command[command.index("--output-file") + 1])
+            self.assertEqual(output.read_bytes(), b"committed lock\n")
+            output.write_bytes(b"incomplete lock\n")
+            raise subprocess.CalledProcessError(1, command)
+
+        with patch.object(updater.subprocess, "run", side_effect=fail):
+            with self.assertRaises(subprocess.CalledProcessError):
+                updater.regenerate(self.root, "typing")
+        self.assertEqual(self.lock.read_bytes(), b"committed lock\n")
+        self.assertEqual(list(self.lock.parent.iterdir()), [self.lock])
+
+    def test_successful_compile_replaces_lock(self):
+        def compile_lock(command, **kwargs):
+            output = Path(command[command.index("--output-file") + 1])
+            self.assertEqual(output.read_bytes(), b"committed lock\n")
+            output.write_bytes(b"regenerated lock\n")
+
+        with patch.object(updater.subprocess, "run", side_effect=compile_lock):
+            updater.regenerate(self.root, "typing")
+        self.assertEqual(self.lock.read_bytes(), b"regenerated lock\n")
+        self.assertEqual(list(self.lock.parent.iterdir()), [self.lock])
 
 
 if __name__ == "__main__":

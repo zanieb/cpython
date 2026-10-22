@@ -5,12 +5,13 @@ on:
     paths:
       - '.github/workflows/**'
       - '.github/dependencies/**'
-      - 'Doc/requirements*.txt'
+      - 'Doc/requirements*.in'
       - 'Doc/constraints.txt'
       - 'Doc/pylock*.toml'
       - 'Tools/requirements*'
       - 'Tools/pylock*.toml'
       - 'Tools/build/check_ci_dependencies.py'
+      - 'Tools/build/update_ci_dependencies.py'
       - 'Tools/build/ci-dependency-inputs.json'
       - 'Lib/ensurepip/**'
   push:

@@ -11,10 +11,10 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[2]
 RECORD = Path("Tools/build/ci-dependency-inputs.json")
 LOCK_INPUTS = {
-    "Doc/pylock.toml": ("Doc/requirements.txt", "Doc/constraints.txt"),
-    "Doc/pylock.epubcheck.toml": ("Doc/requirements-epubcheck.txt",),
-    "Tools/pylock.dev.toml": ("Tools/requirements-dev.txt",),
-    "Tools/pylock.hypothesis.toml": ("Tools/requirements-hypothesis.txt",),
+    "Doc/pylock.toml": ("Doc/requirements.in", "Doc/constraints.txt"),
+    "Doc/pylock.epubcheck.toml": ("Doc/requirements-epubcheck.in",),
+    "Tools/pylock.dev.toml": ("Tools/requirements-dev.in",),
+    "Tools/pylock.hypothesis.toml": ("Tools/requirements-hypothesis.in",),
     "Tools/requirements-build.txt": ("Tools/requirements-build.in",),
 }
 
@@ -66,11 +66,18 @@ def check_python_locks(root, inventory=LOCK_INPUTS):
                 if not re.fullmatch(r"[0-9a-f]{64}", sha256):
                     errors.append(f"{filename}: {name} has no valid SHA-256 hash")
 
-        # Check plain `name==version` pins after an input-record update.
+        # Check bare requirements and exact pins after an input-record update.
         source = root / sources[0]
         for line in source.read_text(encoding="utf-8").splitlines():
-            match = re.fullmatch(r"([A-Za-z0-9_.-]+)==([^\s;*]+)", line.strip())
-            if match and match[2] not in versions.get(normalize(match[1]), set()):
+            match = re.fullmatch(
+                r"([A-Za-z0-9_.-]+)(?:==([^\s;*]+))?", line.strip(),
+            )
+            if not match:
+                continue
+            locked = versions.get(normalize(match[1]), set())
+            if not locked:
+                errors.append(f"{filename}: missing direct requirement {match[1]}")
+            elif match[2] and match[2] not in locked:
                 errors.append(f"{filename}: missing direct pin {line.strip()}")
     return errors
 

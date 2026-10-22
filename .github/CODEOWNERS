@@ -104,7 +104,7 @@ Doc/Makefile                  @AA-Turner @hugovk @StanFromIreland
 Doc/_static/                  @AA-Turner @hugovk @StanFromIreland
 Doc/conf.py                   @AA-Turner @hugovk @StanFromIreland
 Doc/make.bat                  @AA-Turner @hugovk @StanFromIreland
-Doc/requirements.txt          @AA-Turner @hugovk @StanFromIreland
+Doc/requirements.in           @AA-Turner @hugovk @StanFromIreland
 Doc/tools/                    @AA-Turner @hugovk @StanFromIreland
 
 # PR Previews
