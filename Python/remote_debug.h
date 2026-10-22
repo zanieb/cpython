@@ -1173,8 +1173,15 @@ _Py_RemoteDebug_GetPyRuntimeAddress(proc_handle_t* handle)
         }
     }
 #elif defined(__APPLE__) && defined(TARGET_OS_OSX) && TARGET_OS_OSX
-    // On macOS, try libpython first, then fall back to python
-    const char* candidates[] = {"libpython", "python", "Python", NULL};
+    // Search image names by the usual Python prefixes and the configured
+    // framework name.
+    const char* candidates[] = {
+        "libpython", "python", "Python",
+#ifdef WITH_NEXT_FRAMEWORK
+        _PYTHONFRAMEWORK,
+#endif
+        NULL
+    };
     for (const char** candidate = candidates; *candidate; candidate++) {
         PyErr_Clear();
         address = search_map_for_section(handle, "PyRuntime", *candidate,
@@ -1188,7 +1195,7 @@ _Py_RemoteDebug_GetPyRuntimeAddress(proc_handle_t* handle)
             PyObject *exc = PyErr_GetRaisedException();
             PyErr_Format(PyExc_RuntimeError,
                 "Failed to find the PyRuntime section in process %d "
-                "on macOS platform (tried both libpython and python)",
+                "on macOS platform",
                 handle->pid);
             _PyErr_ChainExceptions1(exc);
         }
