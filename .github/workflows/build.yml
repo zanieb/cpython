@@ -260,12 +260,17 @@ jobs:
       os: ubuntu-26.04-arm
 
   build-macos-relocatable:
-    name: 'macOS (relocatable)'
+    name: 'macOS (relocatable ${{ matrix.framework }})'
     needs: build-context
     if: needs.build-context.outputs.run-macos == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        framework: ['', 'Python', 'RelocatablePython']
     uses: ./.github/workflows/reusable-relocatable.yml
     with:
       os: macos-26
+      framework: ${{ matrix.framework }}
 
   build-ubuntu-ssltests:
     name: 'Ubuntu SSL tests'

@@ -321,15 +321,20 @@ BUILDPYTHON=	python$(BUILDEXE)
 # runtime paths relative to their installed locations.
 RELOCATABLE_DIR=build/relocatable
 INSTALL_PYTHON=$(BUILDPYTHON)
+INSTALL_PYTHONW=Mac/pythonw
 INSTALL_LDLIBRARY=$(LDLIBRARY)
 INSTALL_PY3LIBRARY=$(PY3LIBRARY)
 INSTALL_SHAREDMODS=$(SHAREDMODS)
 ifeq ($(RELOCATABLE),yes)
 INSTALL_PYTHON=$(RELOCATABLE_DIR)/$(BUILDPYTHON)
+INSTALL_PYTHONW=Mac/pythonw-relocatable
 INSTALL_SHAREDMODS=$(addprefix $(RELOCATABLE_DIR)/,$(SHAREDMODS))
 ifeq ($(PY_ENABLE_SHARED),1)
 INSTALL_LDLIBRARY=$(RELOCATABLE_DIR)/$(LDLIBRARY)
 INSTALL_PY3LIBRARY=$(addprefix $(RELOCATABLE_DIR)/,$(PY3LIBRARY))
+endif
+ifneq ($(PYTHONFRAMEWORK),)
+INSTALL_LDLIBRARY=$(RELOCATABLE_DIR)/$(LDLIBRARY)
 endif
 endif
 
@@ -1009,7 +1014,7 @@ $(BUILDPYTHON):	Programs/python.o $(LINK_PYTHON_DEPS)
 
 $(RELOCATABLE_DIR)/$(BUILDPYTHON): Programs/python.o $(LINK_PYTHON_DEPS) $(INSTALL_LDLIBRARY)
 	@mkdir -p $(@D)
-	$(LINKCC) $(PY_CORE_EXE_LDFLAGS) $(LINKFORSHARED) $(RELOCATABLE_PYTHON_LDFLAGS) -L$(RELOCATABLE_DIR) -o $@ Programs/python.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS)
+	$(LINKCC) $(PY_CORE_EXE_LDFLAGS) $(subst $(LDLIBRARY),$(INSTALL_LDLIBRARY),$(LINKFORSHARED)) $(RELOCATABLE_PYTHON_LDFLAGS) -L$(RELOCATABLE_DIR) -o $@ Programs/python.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS)
 
 platform: $(PYTHON_FOR_BUILD_DEPS) pybuilddir.txt
 	$(RUNSHARED) $(PYTHON_FOR_BUILD) -c 'import sys ; from sysconfig import get_platform ; print("%s-%d.%d" % (get_platform(), *sys.version_info[:2]))' >platform
@@ -1107,6 +1112,14 @@ $(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK): \
 	$(LN) -fsn $(VERSION) $(PYTHONFRAMEWORKDIR)/Versions/Current
 	$(LN) -fsn Versions/Current/$(PYTHONFRAMEWORK) $(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)
 	$(LN) -fsn Versions/Current/Resources $(PYTHONFRAMEWORKDIR)/Resources
+
+$(RELOCATABLE_DIR)/$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK): $(LIBRARY)
+	@mkdir -p $(@D)
+	$(CC) -o $@ $(PY_CORE_LDFLAGS) $(RELOCATABLE_LIBPYTHON_LDFLAGS) -dynamiclib \
+		-all_load $(LIBRARY) \
+		-install_name $(RELOCATABLE_LIBPYTHON_INSTALL_NAME) \
+		-compatibility_version $(VERSION) -current_version $(VERSION) \
+		-framework CoreFoundation $(LIBS)
 
 # This rule is for iOS, which requires an annoyingly just slightly different
 # format for frameworks to macOS. It *doesn't* use a versioned framework, and
@@ -2469,7 +2482,7 @@ altbininstall: all @FRAMEWORKPYTHONW@
 	if test "$(PYTHONFRAMEWORKDIR)" = "no-framework" ; then \
 		$(INSTALL_PROGRAM) $(INSTALL_PYTHON) $(DESTDIR)$(BINDIR)/python$(LDVERSION)$(EXE); \
 	else \
-		$(INSTALL_PROGRAM) $(STRIPFLAG) Mac/pythonw $(DESTDIR)$(BINDIR)/python$(LDVERSION)$(EXE); \
+		$(INSTALL_PROGRAM) $(STRIPFLAG) $(INSTALL_PYTHONW) $(DESTDIR)$(BINDIR)/python$(LDVERSION)$(EXE); \
 	fi
 	-if test "$(VERSION)" != "$(LDVERSION)"; then \
 		if test -f $(DESTDIR)$(BINDIR)/python$(VERSION)$(EXE) -o -h $(DESTDIR)$(BINDIR)/python$(VERSION)$(EXE); \
@@ -3071,7 +3084,7 @@ frameworkinstallframework: @FRAMEWORKINSTALLFIRST@ install frameworkinstallmacli
 
 # macOS uses a versioned frameworks structure that includes a full install
 .PHONY: frameworkinstallversionedstructure
-frameworkinstallversionedstructure:	$(LDLIBRARY)
+frameworkinstallversionedstructure: all
 	@if test "$(PYTHONFRAMEWORKDIR)" = no-framework; then \
 		echo Not configured with --enable-framework; \
 		exit 1; \
@@ -3090,7 +3103,7 @@ frameworkinstallversionedstructure:	$(LDLIBRARY)
 	$(LN) -fsn Versions/Current/$(PYTHONFRAMEWORK) $(DESTDIR)$(PYTHONFRAMEWORKINSTALLDIR)/$(PYTHONFRAMEWORK)
 	$(LN) -fsn Versions/Current/Headers $(DESTDIR)$(PYTHONFRAMEWORKINSTALLDIR)/Headers
 	$(LN) -fsn Versions/Current/Resources $(DESTDIR)$(PYTHONFRAMEWORKINSTALLDIR)/Resources
-	$(INSTALL_SHARED) $(LDLIBRARY) $(DESTDIR)$(PYTHONFRAMEWORKPREFIX)/$(LDLIBRARY)
+	$(INSTALL_SHARED) $(INSTALL_LDLIBRARY) $(DESTDIR)$(PYTHONFRAMEWORKPREFIX)/$(LDLIBRARY)
 
 # iOS/tvOS/watchOS uses a non-versioned framework with Info.plist in the
 # framework root, no .lproj data, and only stub compilation assistance binaries
@@ -3137,8 +3150,8 @@ frameworkinstallapps:
 # an app bundle within the framework.  This allows the interpreter to
 # run OS X GUI APIs.
 .PHONY: frameworkpythonw
-frameworkpythonw:
-	cd Mac && $(MAKE) pythonw
+frameworkpythonw: $(INSTALL_LDLIBRARY)
+	cd Mac && $(MAKE) $(notdir $(INSTALL_PYTHONW))
 
 # This installs the python* and other bin symlinks in $prefix/bin or in
 # a bin directory relative to the framework root
@@ -3332,7 +3345,7 @@ clean-retain-profile: pycremoval
 	-rm -f pybuilddir.txt
 	-rm -f _bootstrap_python
 	-rm -rf web_example python.mjs python.wasm python*.symbols python*.map
-	-rm -f Programs/_testembed Programs/_freeze_module
+	-rm -f Programs/_testembed Programs/_freeze_module Mac/pythonw-relocatable
 	-rm -rf Python/deepfreeze
 	-rm -f Python/frozen_modules/*.h
 	-rm -f Python/frozen_modules/MANIFEST

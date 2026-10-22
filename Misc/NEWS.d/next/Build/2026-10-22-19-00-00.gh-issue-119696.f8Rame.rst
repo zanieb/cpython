@@ -1,0 +1,3 @@
+Support :option:`--enable-relocatable` for macOS framework builds. Use relative
+framework library paths for installed interpreters and extensions, and link
+copied virtual environments to the base framework.
