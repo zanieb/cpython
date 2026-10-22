@@ -2215,6 +2215,10 @@ else
 fi],
 [AC_MSG_RESULT([no])])
 
+AS_IF([test "$enable_relocatable" = yes && test "$Py_BOLT" = true], [
+  AC_MSG_ERROR([--enable-relocatable does not support --enable-bolt yet])
+])
+
 AC_SUBST([PREBOLT_RULE])
 if test "$Py_BOLT" = 'true' ; then
   PREBOLT_RULE="${DEF_MAKE_ALL_RULE}"
@@ -6873,6 +6877,54 @@ AC_SUBST([LIBDEST])
 AC_SUBST([BINLIBDEST])
 LIBDEST='${prefix}/${PLATLIBDIR}/python$(VERSION)$(ABI_THREAD)'
 BINLIBDEST='${exec_prefix}/${PLATLIBDIR}/python$(VERSION)$(ABI_THREAD)'
+
+# Runtime paths are specific to the installed location of each kind of binary.
+# Do not add them to LDSHARED: third-party extensions may be installed elsewhere.
+RELOCATABLE_PYTHON_LDFLAGS=
+RELOCATABLE_LIBPYTHON_LDFLAGS=
+RELOCATABLE_EXTENSION_LDFLAGS=
+RELOCATABLE_LIBPYTHON_INSTALL_NAME=
+AS_IF([test "$enable_relocatable" = yes && test -n "$enable_framework"], [
+  AC_MSG_ERROR([--enable-relocatable does not support framework builds yet])
+])
+AS_IF([test "$enable_relocatable" = yes && test -z "$enable_framework"], [
+  AS_CASE([$ac_sys_system],
+    [Linux|Darwin], [],
+    [AC_MSG_ERROR([relocatable builds are not implemented on $ac_sys_system yet])])
+  AS_VAR_IF([prefix], [NONE], [relocatable_prefix=$ac_default_prefix],
+    [relocatable_prefix=$prefix])
+  AS_IF([test "$exec_prefix" != NONE && test "$exec_prefix" != '${prefix}' && test "$exec_prefix" != "$relocatable_prefix"],
+    [AC_MSG_ERROR([--enable-relocatable requires a common prefix and exec-prefix])])
+  AS_IF([test "$bindir" != '${exec_prefix}/bin' && test "$bindir" != '${prefix}/bin' && test "$bindir" != "$relocatable_prefix/bin"],
+    [AC_MSG_ERROR([--enable-relocatable requires the default bin directory])])
+  AS_IF([test "$libdir" != '${exec_prefix}/lib' && test "$libdir" != '${prefix}/lib' && test "$libdir" != "$relocatable_prefix/lib"],
+    [AC_MSG_ERROR([--enable-relocatable requires the default lib directory])])
+  AS_CASE([$PLATLIBDIR], [*/*|.|..],
+    [AC_MSG_ERROR([--enable-relocatable requires a single directory name for --with-platlibdir])])
+  AS_CASE([$ac_sys_system],
+    [Linux], [
+      # Keep the dollar sign through configure, make, and the shell.
+      # DT_RPATH entries can also resolve indirect dependencies.
+      RELOCATABLE_PYTHON_LDFLAGS="-Wl,--disable-new-dtags,-rpath,'\$\$ORIGIN/../lib'"
+      RELOCATABLE_LIBPYTHON_LDFLAGS="-Wl,--disable-new-dtags,-rpath,'\$\$ORIGIN'"
+      RELOCATABLE_EXTENSION_LDFLAGS="-Wl,--disable-new-dtags,-rpath,'\$\$ORIGIN/../../../lib'"
+      save_LDFLAGS=$LDFLAGS
+      LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags"
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])], [],
+        [AC_MSG_ERROR([--enable-relocatable requires linker support for --disable-new-dtags])])
+      LDFLAGS=$save_LDFLAGS
+    ],
+    [Darwin], [
+      RELOCATABLE_LIBPYTHON_INSTALL_NAME='@rpath/libpython$(LDVERSION).dylib'
+      RELOCATABLE_PYTHON_LDFLAGS='-Wl,-rpath,@executable_path/../lib'
+      RELOCATABLE_LIBPYTHON_LDFLAGS='-Wl,-rpath,@loader_path'
+      RELOCATABLE_EXTENSION_LDFLAGS='-Wl,-rpath,@loader_path/../../../lib'
+    ])
+])
+AC_SUBST([RELOCATABLE_PYTHON_LDFLAGS])
+AC_SUBST([RELOCATABLE_LIBPYTHON_LDFLAGS])
+AC_SUBST([RELOCATABLE_EXTENSION_LDFLAGS])
+AC_SUBST([RELOCATABLE_LIBPYTHON_INSTALL_NAME])
 
 dnl define LIBPL after ABIFLAGS and LDVERSION is defined.
 AC_SUBST([PY_ENABLE_SHARED])
