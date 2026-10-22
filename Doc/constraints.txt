@@ -1,7 +1,6 @@
-# We have upper bounds on our transitive dependencies here
-# To avoid new releases unexpectedly breaking our build.
+# Upper bounds on documentation dependencies limit incompatible releases.
 # Update these constraints as needed when the documentation requirements
-# in Doc/requirements.in or their compatibility limits change.
+# in the `docs` group in `pyproject.toml` or their compatibility limits change.
 
 # Direct dependencies of Sphinx
 babel<3

@@ -50,9 +50,8 @@ SUFFIXES_DOCUMENTATION = frozenset({".rst", ".md"})
 DEPENDENCY_CONSUMERS = {
     Path("Misc/Brewfile"): frozenset({"macos"}),
     Path("Tools/requirements-bootstrap.txt"): frozenset({"docs", "ubuntu"}),
-    Path("Tools/requirements-build.in"): frozenset({"docs", "ubuntu"}),
+    Path("pyproject.toml"): frozenset({"docs", "ubuntu"}),
     Path("Tools/requirements-build.txt"): frozenset({"docs", "ubuntu"}),
-    Path("Tools/requirements-hypothesis.in"): frozenset({"ubuntu"}),
     Path("Tools/pylock.hypothesis.toml"): frozenset({"ubuntu"}),
     Path("Tools/build/dependency-hashes.json"): frozenset({
         "android", "ios", "ubuntu", "windows",

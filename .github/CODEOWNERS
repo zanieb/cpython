@@ -68,6 +68,9 @@ Tools/build/compute-changes.py              @AA-Turner @hugovk @webknjaz @StanFr
 Lib/test/test_tools/test_compute_changes.py @AA-Turner @hugovk @webknjaz @StanFromIreland
 Tools/build/verify_ensurepip_wheels.py      @AA-Turner @pfmoore @pradyunsg
 
+# CI dependency inputs
+/pyproject.toml               @AA-Turner @hugovk @StanFromIreland
+
 # Pre-commit
 .pre-commit-config.yaml       @hugovk @JacobCoffee @StanFromIreland
 .ruff.toml                    @hugovk @AlexWaygood @AA-Turner @JacobCoffee @StanFromIreland
@@ -104,7 +107,6 @@ Doc/Makefile                  @AA-Turner @hugovk @StanFromIreland
 Doc/_static/                  @AA-Turner @hugovk @StanFromIreland
 Doc/conf.py                   @AA-Turner @hugovk @StanFromIreland
 Doc/make.bat                  @AA-Turner @hugovk @StanFromIreland
-Doc/requirements.in           @AA-Turner @hugovk @StanFromIreland
 Doc/tools/                    @AA-Turner @hugovk @StanFromIreland
 
 # PR Previews

@@ -12,7 +12,7 @@ on:
       - '3.*'
     paths:
       - 'Doc/pylock*.toml'
-      - 'Doc/requirements*.in'
+      - 'pyproject.toml'
       - 'Doc/constraints.txt'
       - 'Doc/Makefile'
       - 'Doc/tools/create_venv.py'
