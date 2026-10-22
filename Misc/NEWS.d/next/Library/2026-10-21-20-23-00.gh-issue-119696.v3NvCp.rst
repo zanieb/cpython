@@ -1,0 +1,4 @@
+Support copied :mod:`venv` interpreters in shared builds configured with
+:option:`--enable-relocatable`. When :mod:`venv` copies the interpreter, it
+links to the base installation's library directory so the copied interpreter
+can load its shared libraries.

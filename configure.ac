@@ -6901,7 +6901,7 @@ AS_IF([test "$enable_relocatable" = yes && test -z "$enable_framework"], [
     [Linux], [
       # Keep the dollar sign through configure, make, and the shell.
       # DT_RUNPATH permits LD_LIBRARY_PATH to select build-tree libraries.
-      RELOCATABLE_PYTHON_LDFLAGS="-Wl,--enable-new-dtags,-rpath,'\$\$ORIGIN/../lib'"
+      RELOCATABLE_PYTHON_LDFLAGS="-Wl,--enable-new-dtags,-rpath,'\$\$ORIGIN/../lib:\$\$ORIGIN/../lib/python-base'"
       RELOCATABLE_LIBPYTHON_LDFLAGS="-Wl,--enable-new-dtags,-rpath,'\$\$ORIGIN'"
       RELOCATABLE_EXTENSION_LDFLAGS="-Wl,--enable-new-dtags,-rpath,'\$\$ORIGIN/../../../lib'"
       save_LDFLAGS=$LDFLAGS
@@ -6912,7 +6912,7 @@ AS_IF([test "$enable_relocatable" = yes && test -z "$enable_framework"], [
     ],
     [Darwin], [
       LIBPYTHON_INSTALL_NAME='@rpath/libpython$(LDVERSION).dylib'
-      RELOCATABLE_PYTHON_LDFLAGS='-Wl,-rpath,@executable_path/../lib'
+      RELOCATABLE_PYTHON_LDFLAGS='-Wl,-rpath,@executable_path/../lib -Wl,-rpath,@executable_path/../lib/python-base'
       RELOCATABLE_LIBPYTHON_LDFLAGS='-Wl,-rpath,@loader_path'
       RELOCATABLE_EXTENSION_LDFLAGS='-Wl,-rpath,@loader_path/../../../lib'
     ])
