@@ -126,7 +126,12 @@ jobs:
           export PKG_CONFIG="pkg-config --static"
           export PKG_CONFIG_PATH=""
           export PKG_CONFIG_LIBDIR="$deps/lib/pkgconfig:$deps/share/pkgconfig"
-          # Set Intel macOS results for checks that cannot run while cross-compiling.
+          # By default, `configure` clears the Darwin release when cross-compiling,
+          # which hides APIs such as `sendfile`. Set it and cache results for checks
+          # that cannot run while cross-compiling.
+          MACHDEP=darwin \
+          ac_sys_system=Darwin \
+          ac_sys_release="$(uname -r)" \
           ac_cv_file__dev_ptmx=yes \
           ac_cv_file__dev_ptc=no \
           ac_cv_aligned_required=no \
