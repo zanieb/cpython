@@ -1143,7 +1143,7 @@ class BasicTest(BaseTest):
             ld_library_path = os.path.abspath(os.path.dirname(sys.executable))
         if (sysconfig.get_config_var('Py_ENABLE_SHARED')
                 and sys.platform != 'cygwin'):
-            # Startup searches relative to libpython before the executable.
+            # Startup can search relative to libpython before the executable.
             # Load a copy from the temporary installation to select its
             # standard library.
             shared_libdir = os.path.join(non_installed_dir, 'lib')

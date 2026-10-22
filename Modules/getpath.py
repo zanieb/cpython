@@ -562,7 +562,7 @@ else:
             stdlib_dir = None
 
 
-    # First try to detect prefix by looking alongside our runtime library, if known
+    # First try to detect prefix by searching from our runtime library, if known.
     if library and not prefix:
         library_dir = dirname(library)
         if os_name != 'nt':

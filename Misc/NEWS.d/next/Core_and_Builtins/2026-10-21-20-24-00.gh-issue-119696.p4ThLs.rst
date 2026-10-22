@@ -1,3 +1,2 @@
-Allow the standard library to be found relative to ``libpython`` in POSIX
-shared builds by searching parent directories of the library path, as for
-the standard-library ZIP file.
+On POSIX, search parent directories of the shared library path for the unpacked
+standard library, as already done for the standard-library ZIP file.

@@ -314,8 +314,7 @@ class EnvBuilder:
                         and sysconfig.get_config_var('Py_ENABLE_SHARED')
                         and not sysconfig.get_config_var('PYTHONFRAMEWORK')):
                     # The copied executable searches relative to this environment.
-                    # Link the base library directory to keep libpython and its
-                    # relative dependencies reachable.
+                    # Link the base library directory so it can find libpython.
                     if sysconfig.is_python_build():
                         library_dir = context.python_dir
                     else:
