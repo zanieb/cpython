@@ -1,2 +1,3 @@
-Add the experimental :option:`--enable-relocatable` configure option.
-The option currently has no effect on the build.
+Add the experimental :option:`--enable-relocatable` configure option
+to set relative runtime library paths on Linux and non-framework macOS
+builds. The feature is under active development.

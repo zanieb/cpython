@@ -1076,11 +1076,26 @@ Linker options
 .. option:: --enable-relocatable
 
    Enable experimental support for relocatable builds (default is no).
-   This option currently has no effect on the build.
 
    .. warning::
 
       This feature is under active development. Do not use it in production.
+
+   Currently, this sets relative runtime library paths on Linux and for
+   non-framework macOS builds. Framework relocation is not implemented yet.
+   Combining this option with :option:`--enable-framework` is an error.
+
+   Move the installation as a unit. It must use the default ``bin`` and ``lib``
+   directories under a common prefix. :option:`--with-platlibdir` may select
+   a different directory name for the standard library, but not a nested path.
+   On Linux, these paths use ``DT_RUNPATH``.
+
+   Dependencies stored in other directories, such as ``lib/tcltk``, may
+   need additional loader search paths.
+
+   This option does not bundle dependencies, adjust data-file lookup for
+   libraries such as Tcl/Tk, or rewrite script shebangs and build-time
+   paths in :mod:`sysconfig`.
 
    .. versionadded:: 3.16
 
