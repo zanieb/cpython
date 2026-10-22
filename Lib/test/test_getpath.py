@@ -290,6 +290,97 @@ class MockGetPathTests(unittest.TestCase):
         actual = getpath(ns, expected)
         self.assertEqual(expected, actual)
 
+    def test_shared_library_posix(self):
+        for os_name in ('posix', 'darwin'):
+            for platlibdir in ('lib', 'lib64'):
+                for argv0 in ('missing-python', '/application/bin/host'):
+                    with self.subTest(os_name=os_name, platlibdir=platlibdir,
+                                      argv0=argv0):
+                        ns = MockPosixNamespace(
+                            os_name=os_name,
+                            PREFIX='/configured',
+                            EXEC_PREFIX='/configured',
+                            PLATLIBDIR=platlibdir,
+                            argv0=argv0,
+                            library=f'/moved/bin/../{platlibdir}/libpython9.8.so',
+                        )
+                        ns.add_known_xfile('/application/bin/host')
+                        for prefix in ('/configured', '/moved'):
+                            ns.add_known_file(
+                                f'{prefix}/{platlibdir}/python9.8/os.py')
+                            ns.add_known_dir(
+                                f'{prefix}/{platlibdir}/python9.8/lib-dynload')
+                        expected = dict(
+                            prefix='/moved',
+                            exec_prefix='/moved',
+                            base_prefix='/moved',
+                            base_exec_prefix='/moved',
+                            module_search_paths=[
+                                f'/moved/{platlibdir}/python98.zip',
+                                f'/moved/{platlibdir}/python9.8',
+                                f'/moved/{platlibdir}/python9.8/lib-dynload',
+                            ],
+                        )
+                        self.assertEqual(expected, getpath(ns, expected))
+
+    def test_shared_library_home_posix(self):
+        ns = MockPosixNamespace(
+            PREFIX='/configured',
+            argv0='missing-python',
+            library='/moved/lib/libpython9.8.so',
+            ENV_PYTHONHOME='/pythonhome',
+        )
+        for prefix in ('/moved', '/pythonhome'):
+            ns.add_known_file(f'{prefix}/lib/python9.8/os.py')
+            ns.add_known_dir(f'{prefix}/lib/python9.8/lib-dynload')
+        expected = dict(
+            prefix='/pythonhome',
+            exec_prefix='/pythonhome',
+            base_prefix='/pythonhome',
+            base_exec_prefix='/pythonhome',
+        )
+        self.assertEqual(expected, getpath(ns, expected))
+
+    def test_shared_library_without_cwd_posix(self):
+        def abspath(path):
+            raise FileNotFoundError('working directory has been removed')
+
+        ns = MockPosixNamespace(
+            PREFIX='/configured',
+            argv0='python',
+            config={'executable': '/moved/bin/python'},
+            library='libpython9.8.so',
+            abspath=abspath,
+        )
+        ns.add_known_xfile('/moved/bin/python')
+        ns.add_known_file('/moved/lib/python9.8/os.py')
+        ns.add_known_dir('/moved/lib/python9.8/lib-dynload')
+        expected = dict(prefix='/moved', exec_prefix='/moved')
+        self.assertEqual(expected, getpath(ns, expected))
+
+    def test_shared_library_venv_posix(self):
+        ns = MockPosixNamespace(
+            PREFIX='/configured',
+            argv0='python',
+            ENV_PATH='/venv/bin:/moved/bin',
+            library='/moved/lib/libpython9.8.so',
+        )
+        ns.add_known_xfile('/moved/bin/python')
+        ns.add_known_xfile('/venv/bin/python')
+        ns.add_known_link('/venv/bin/python', '/moved/bin/python')
+        ns.add_known_file('/moved/lib/python9.8/os.py')
+        ns.add_known_dir('/moved/lib/python9.8/lib-dynload')
+        ns.add_known_file('/venv/pyvenv.cfg', ['home = /moved/bin'])
+        expected = dict(
+            executable='/venv/bin/python',
+            base_executable='/moved/bin/python',
+            prefix='/venv',
+            exec_prefix='/venv',
+            base_prefix='/moved',
+            base_exec_prefix='/moved',
+        )
+        self.assertEqual(expected, getpath(ns, expected))
+
     def test_buildpath_posix(self):
         """Test an in-build-tree layout on POSIX.
 
@@ -1157,7 +1248,7 @@ class MockPosixNamespace(dict):
 
     def abspath(self, path):
         if self.isabs(path):
-            return path
+            return posixpath.normpath(path)
         return self.joinpath("/Absolute", path)
 
     def basename(self, path):

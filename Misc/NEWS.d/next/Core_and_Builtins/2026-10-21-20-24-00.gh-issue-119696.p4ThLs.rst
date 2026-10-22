@@ -1,0 +1,3 @@
+Allow the standard library to be found relative to ``libpython`` in POSIX
+shared builds by searching parent directories of the library path, as for
+the standard-library ZIP file.
