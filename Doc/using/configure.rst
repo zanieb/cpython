@@ -1084,7 +1084,6 @@ Linker options
    Currently, this sets relative runtime library paths on Linux and for
    non-framework macOS builds. Framework relocation is not implemented yet.
    Combining this option with :option:`--enable-framework` is an error.
-   Combining it with :option:`--enable-bolt` is an error.
 
    Move the installation as a unit. It must use the default ``bin`` and ``lib``
    directories under a common prefix. :option:`--with-platlibdir` may select

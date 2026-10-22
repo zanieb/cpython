@@ -9481,13 +9481,6 @@ esac
 fi
 
 
-if test "$enable_relocatable" = yes && test "$Py_BOLT" = true
-then :
-
-  as_fn_error $? "--enable-relocatable does not support --enable-bolt yet" "$LINENO" 5
-
-fi
-
 
 if test "$Py_BOLT" = 'true' ; then
   PREBOLT_RULE="${DEF_MAKE_ALL_RULE}"

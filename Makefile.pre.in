@@ -887,6 +887,10 @@ profile-opt: profile-run-stamp
 
 # List of binaries that BOLT runs on.
 BOLT_BINARIES := @BOLT_BINARIES@
+ifeq ($(RELOCATABLE),yes)
+# Optimize libraries before the interpreter, which depends on their timestamps.
+RELOCATABLE_BOLT_BINARIES = $(addprefix $(RELOCATABLE_DIR)/,$(filter-out $(BUILDPYTHON),$(BOLT_BINARIES)) $(BUILDPYTHON))
+endif
 
 BOLT_INSTRUMENT_FLAGS := @BOLT_INSTRUMENT_FLAGS@
 BOLT_APPLY_FLAGS := @BOLT_APPLY_FLAGS@
@@ -896,13 +900,13 @@ clean-bolt:
 	# Profile data.
 	rm -f *.fdata
 	# Pristine binaries before BOLT optimization.
-	rm -f *.prebolt
+	rm -f *.prebolt $(RELOCATABLE_DIR)/*.prebolt
 	# BOLT instrumented binaries.
 	rm -f *.bolt_inst
 
 profile-bolt-stamp: $(BUILDPYTHON)
 	# Ensure a pristine, pre-BOLT copy of the binary and no profile data from last run.
-	for bin in $(BOLT_BINARIES); do \
+	for bin in $(BOLT_BINARIES) $(RELOCATABLE_BOLT_BINARIES); do \
 	  prebolt="$${bin}.prebolt"; \
 	  if [ -e "$${prebolt}" ]; then \
 	    echo "Restoring pre-BOLT binary $${prebolt}"; \
@@ -928,6 +932,14 @@ profile-bolt-stamp: $(BUILDPYTHON)
 	  @LLVM_BOLT@ "$${bin}.prebolt" -o "$${bin}.bolt" -data="$${bin}.fdata" $(BOLT_APPLY_FLAGS); \
 	  mv "$${bin}.bolt" "$${bin}"; \
 	done
+	# Install variants are linked from the same objects, so reuse the function profiles.
+	for bin in $(RELOCATABLE_BOLT_BINARIES); do \
+	  @LLVM_BOLT@ "$${bin}.prebolt" -o "$${bin}.bolt" -data="$${bin##*/}.fdata" $(BOLT_APPLY_FLAGS); \
+	  mv "$${bin}.bolt" "$${bin}"; \
+	done
+	if test "$(RELOCATABLE)" = yes && test -n "$(filter $(INSTSONAME),$(BOLT_BINARIES))"; then \
+	  $(LN) -f $(RELOCATABLE_DIR)/$(INSTSONAME) $(INSTALL_LDLIBRARY); \
+	fi
 	touch $@
 
 .PHONY: bolt-opt

@@ -2215,10 +2215,6 @@ else
 fi],
 [AC_MSG_RESULT([no])])
 
-AS_IF([test "$enable_relocatable" = yes && test "$Py_BOLT" = true], [
-  AC_MSG_ERROR([--enable-relocatable does not support --enable-bolt yet])
-])
-
 AC_SUBST([PREBOLT_RULE])
 if test "$Py_BOLT" = 'true' ; then
   PREBOLT_RULE="${DEF_MAKE_ALL_RULE}"
