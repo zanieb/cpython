@@ -1079,7 +1079,15 @@ class BasicTest(BaseTest):
         bindir = os.path.join(non_installed_dir, self.bindir)
         os.mkdir(bindir)
         python_exe = os.path.basename(sys.executable)
-        shutil.copy2(sys.executable, os.path.join(bindir, python_exe))
+        framework = sysconfig.get_config_var("PYTHONFRAMEWORK")
+        source_executable = sys.executable
+        if framework and not sysconfig.is_python_build():
+            # The framework launcher looks for the app relative to the loaded runtime.
+            # This fixture lacks that app bundle, so copy its interpreter directly.
+            source_executable = os.path.join(
+                sys.base_exec_prefix, 'Resources', 'Python.app', 'Contents',
+                'MacOS', framework)
+        shutil.copy2(source_executable, os.path.join(bindir, python_exe))
         if sys.platform == 'cygwin':
             # Copy libpython DLL
             exe_path = os.path.dirname(sys.executable)
@@ -1134,7 +1142,6 @@ class BasicTest(BaseTest):
             additional_pythonpath_for_non_installed)
         # Set the library search path so the non-installed interpreter can
         # load its shared library or framework.
-        framework = sysconfig.get_config_var("PYTHONFRAMEWORK")
         if framework:
             ld_library_path = sysconfig.get_config_var("PYTHONFRAMEWORKPREFIX")
         else:
