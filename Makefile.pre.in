@@ -61,6 +61,10 @@ DSYMUTIL_PATH=  @DSYMUTIL_PATH@
 
 GNULD=		@GNULD@
 RELOCATABLE=	@RELOCATABLE@
+RELOCATABLE_PYTHON_LDFLAGS=@RELOCATABLE_PYTHON_LDFLAGS@
+RELOCATABLE_LIBPYTHON_LDFLAGS=@RELOCATABLE_LIBPYTHON_LDFLAGS@
+RELOCATABLE_EXTENSION_LDFLAGS=@RELOCATABLE_EXTENSION_LDFLAGS@
+LIBPYTHON_INSTALL_NAME=@LIBPYTHON_INSTALL_NAME@
 
 # Shell used by make (some versions default to the login shell, which is bad)
 SHELL=		/bin/sh -e
@@ -286,7 +290,7 @@ DIST=		$(DISTFILES) $(DISTDIRS)
 LIBRARY=	@LIBRARY@
 LDLIBRARY=      @LDLIBRARY@
 BLDLIBRARY=     @BLDLIBRARY@
-MODULE_LDFLAGS_SHARED=$(if $(LIBPYTHON),$(BLDLIBRARY))
+MODULE_LDFLAGS_SHARED=$(if $(LIBPYTHON),$(BLDLIBRARY)) $(RELOCATABLE_EXTENSION_LDFLAGS)
 PY3LIBRARY=     @PY3LIBRARY@
 DLLLIBRARY=	@DLLLIBRARY@
 LDLIBRARYDIR=   @LDLIBRARYDIR@
@@ -972,7 +976,7 @@ clinic-tests: check-clean-src $(srcdir)/Lib/test/clinic.test.c
 
 # Build the interpreter
 $(BUILDPYTHON):	Programs/python.o $(LINK_PYTHON_DEPS)
-	$(LINKCC) $(PY_CORE_EXE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS)
+	$(LINKCC) $(PY_CORE_EXE_LDFLAGS) $(LINKFORSHARED) $(RELOCATABLE_PYTHON_LDFLAGS) -o $@ Programs/python.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS)
 
 platform: $(PYTHON_FOR_BUILD_DEPS) pybuilddir.txt
 	$(RUNSHARED) $(PYTHON_FOR_BUILD) -c 'import sys ; from sysconfig import get_platform ; print("%s-%d.%d" % (get_platform(), *sys.version_info[:2]))' >platform
@@ -1004,7 +1008,7 @@ $(LIBRARY): $(LIBRARY_OBJS)
 libpython$(LDVERSION).so: $(LIBRARY_OBJS) $(DTRACE_OBJS)
 	# AIX Linker don't support "-h" option
 	if test "$(MACHDEP)" != "aix"; then \
-		$(BLDSHARED) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM); \
+		$(BLDSHARED) $(RELOCATABLE_LIBPYTHON_LDFLAGS) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM); \
 	else \
 		$(BLDSHARED) -o $@ $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM); \
 	fi
@@ -1013,10 +1017,10 @@ libpython$(LDVERSION).so: $(LIBRARY_OBJS) $(DTRACE_OBJS)
 	fi
 
 libpython3.so:	libpython$(LDVERSION).so
-	$(BLDSHARED) $(NO_AS_NEEDED) -o $@ -Wl,-h$@ $^
+	$(BLDSHARED) $(RELOCATABLE_LIBPYTHON_LDFLAGS) $(NO_AS_NEEDED) -o $@ -Wl,-h$@ $^
 
 libpython$(LDVERSION).dylib: $(LIBRARY_OBJS)
-	 $(CC) -dynamiclib $(PY_CORE_LDFLAGS) -undefined dynamic_lookup -Wl,-install_name,$(prefix)/lib/libpython$(LDVERSION).dylib -Wl,-compatibility_version,$(VERSION) -Wl,-current_version,$(VERSION) -o $@ $(LIBRARY_OBJS) $(DTRACE_OBJS) $(SHLIBS) $(LIBC) $(LIBM); \
+	 $(CC) -dynamiclib $(PY_CORE_LDFLAGS) $(RELOCATABLE_LIBPYTHON_LDFLAGS) -undefined dynamic_lookup -Wl,-install_name,$(LIBPYTHON_INSTALL_NAME) -Wl,-compatibility_version,$(VERSION) -Wl,-current_version,$(VERSION) -o $@ $(LIBRARY_OBJS) $(DTRACE_OBJS) $(SHLIBS) $(LIBC) $(LIBM); \
 
 
 libpython$(VERSION).sl: $(LIBRARY_OBJS)
@@ -1617,7 +1621,7 @@ regen-re: $(BUILDPYTHON)
 	$(RUNSHARED) ./$(BUILDPYTHON) $(srcdir)/Tools/build/generate_re_casefix.py $(srcdir)/Lib/re/_casefix.py
 
 Programs/_testembed: Programs/_testembed.o $(LINK_PYTHON_DEPS)
-	$(LINKCC) $(PY_CORE_EXE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/_testembed.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS)
+	$(LINKCC) $(PY_CORE_EXE_LDFLAGS) $(LINKFORSHARED) $(RELOCATABLE_PYTHON_LDFLAGS) -o $@ Programs/_testembed.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS)
 
 ############################################################################
 # "Bootstrap Python" used to run Programs/_freeze_module.py
