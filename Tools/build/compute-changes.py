@@ -47,9 +47,27 @@ UNIX_BUILD_SYSTEM_FILE_NAMES = frozenset({
 SUFFIXES_C_OR_CPP = frozenset({".c", ".h", ".cpp"})
 SUFFIXES_DOCUMENTATION = frozenset({".rst", ".md"})
 
-ANDROID_DIRS = frozenset({"Android"})
+DEPENDENCY_CONSUMERS = {
+    Path("Misc/Brewfile"): frozenset({"macos"}),
+    Path("Tools/requirements-bootstrap.txt"): frozenset({"docs", "ubuntu"}),
+    Path("Tools/requirements-build.in"): frozenset({"docs", "ubuntu"}),
+    Path("Tools/requirements-build.txt"): frozenset({"docs", "ubuntu"}),
+    Path("Tools/requirements-hypothesis.txt"): frozenset({"ubuntu"}),
+    Path("Tools/pylock.hypothesis.toml"): frozenset({"ubuntu"}),
+    Path("Tools/build/dependency-hashes.json"): frozenset({
+        "android", "ios", "ubuntu", "windows",
+    }),
+    Path("Tools/build/download_dependencies.py"): frozenset({
+        "android", "ios", "ubuntu", "windows",
+    }),
+    Path("Tools/ssl/multissltests.py"): frozenset({"ubuntu"}),
+    Path(".github/actions/ssl-cache-key/action.yml"): frozenset({"ubuntu"}),
+    Path(".github/workflows/posix-deps-apt.sh"): frozenset({"docs", "ubuntu"}),
+}
+
+ANDROID_DIRS = frozenset({Path("Android"), Path("Platforms/Android")})
 EMSCRIPTEN_DIRS = frozenset({Path("Platforms", "emscripten")})
-IOS_DIRS = frozenset({"Apple", "iOS"})
+IOS_DIRS = frozenset({Path("Apple"), Path("iOS"), Path("Platforms/Apple")})
 MACOS_DIRS = frozenset({"Mac"})
 WASI_DIRS = frozenset({Path("Platforms", "WASI")})
 
@@ -194,9 +212,9 @@ def get_file_platform(file: Path) -> str | None:
     first_part = file.parts[0]
     if first_part in MACOS_DIRS:
         return "macos"
-    if first_part in IOS_DIRS:
+    if any(file.is_relative_to(directory) for directory in IOS_DIRS):
         return "ios"
-    if first_part in ANDROID_DIRS:
+    if any(file.is_relative_to(directory) for directory in ANDROID_DIRS):
         return "android"
     if len(file.parts) >= 2 and Path(*file.parts[:2]) in EMSCRIPTEN_DIRS:
         return "emscripten"
@@ -220,10 +238,20 @@ def process_changed_files(changed_files: Set[Path]) -> Outputs:
     run_docs = False
     run_windows_tests = False
 
-    platforms_changed = set()
+    platforms_changed: set[str] = set()
     has_platform_specific_change = True
 
     for file in changed_files:
+        if consumers := DEPENDENCY_CONSUMERS.get(file):
+            run_docs |= "docs" in consumers
+            platforms = consumers - {"docs"}
+            run_tests |= bool(platforms)
+            run_windows_tests |= "windows" in platforms
+            platforms_changed.update(platforms)
+            continue
+        if file.is_relative_to("Lib/ensurepip"):
+            run_docs = True
+
         # Documentation files
         doc_or_misc = file.parts[0] in {"Doc", "Misc"}
         doc_file = file.suffix in SUFFIXES_DOCUMENTATION or doc_or_misc
@@ -231,6 +259,7 @@ def process_changed_files(changed_files: Set[Path]) -> Outputs:
         if file.parent == GITHUB_WORKFLOWS_PATH:
             if file.name in ("build.yml", "reusable-cifuzz.yml"):
                 run_tests = run_ci_fuzz = run_ci_fuzz_stdlib = run_windows_tests = True
+                run_docs |= file.name == "build.yml"
                 has_platform_specific_change = False
                 continue
             if file.name in ("reusable-docs.yml", "reusable-check-html-ids.yml"):
@@ -294,7 +323,7 @@ def process_changed_files(changed_files: Set[Path]) -> Outputs:
             run_emscripten = "emscripten" in platforms_changed
             run_ios = "ios" in platforms_changed
             run_macos = "macos" in platforms_changed
-            run_ubuntu = False
+            run_ubuntu = "ubuntu" in platforms_changed
             run_wasi = "wasi" in platforms_changed
     else:
         run_android = False

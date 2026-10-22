@@ -11,8 +11,14 @@ on:
       - main
       - '3.*'
     paths:
-      - 'Doc/pylock.toml'
-      - 'Doc/requirements.txt'
+      - 'Doc/pylock*.toml'
+      - 'Doc/requirements*.txt'
+      - 'Doc/constraints.txt'
+      - 'Doc/Makefile'
+      - 'Doc/tools/create_venv.py'
+      - 'Tools/requirements-bootstrap.txt'
+      - 'Tools/requirements-build.*'
+      - 'Lib/ensurepip/**'
       - '.github/workflows/reusable-docs.yml'
 
 permissions:
