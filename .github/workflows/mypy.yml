@@ -31,7 +31,7 @@ on:
       - "Tools/clinic/**"
       - "Tools/jit/**"
       - "Tools/peg_generator/**"
-      - "Tools/requirements-dev.txt"
+      - "Tools/requirements-dev.in"
       - "Tools/pylock.dev.toml"
   workflow_dispatch:
 
