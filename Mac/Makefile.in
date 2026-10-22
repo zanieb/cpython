@@ -14,6 +14,13 @@ LIBDEST=$(prefix)/lib/python$(VERSION)
 RUNSHARED=@RUNSHARED@
 BUILDEXE=@BUILDEXEEXT@
 BUILDPYTHON=$(builddir)/python$(BUILDEXE)
+RELOCATABLE=@RELOCATABLE@
+RELOCATABLE_DIR=$(builddir)/build/relocatable
+RELOCATABLE_PYTHONW_LDFLAGS=@RELOCATABLE_PYTHONW_LDFLAGS@
+INSTALL_PYTHON=$(BUILDPYTHON)
+ifeq ($(RELOCATABLE),yes)
+INSTALL_PYTHON=$(RELOCATABLE_DIR)/python$(BUILDEXE)
+endif
 DESTDIR=
 LDFLAGS=@LDFLAGS@
 FRAMEWORKUNIXTOOLSPREFIX=@FRAMEWORKUNIXTOOLSPREFIX@
@@ -177,6 +184,11 @@ pythonw: $(srcdir)/Tools/pythonw.c Makefile
 		$(srcdir)/Tools/pythonw.c -I.. -I$(srcdir)/../Include \
 		../$(PYTHONFRAMEWORK).framework/Versions/$(VERSION)/$(PYTHONFRAMEWORK)
 
+pythonw-relocatable: $(srcdir)/Tools/pythonw.c Makefile $(RELOCATABLE_DIR)/$(PYTHONFRAMEWORK).framework/Versions/$(VERSION)/$(PYTHONFRAMEWORK)
+	$(CC) $(LDFLAGS) $(RELOCATABLE_PYTHONW_LDFLAGS) -DPYTHONFRAMEWORK='"$(PYTHONFRAMEWORK)"' -o $@ \
+		$(srcdir)/Tools/pythonw.c -I.. -I$(srcdir)/../Include \
+		$(RELOCATABLE_DIR)/$(PYTHONFRAMEWORK).framework/Versions/$(VERSION)/$(PYTHONFRAMEWORK)
+
 install_PythonLauncher:
 	cd PythonLauncher && make install DESTDIR=$(DESTDIR)
 
@@ -223,7 +235,7 @@ install_Python:
 			esac; \
 		done; \
 	done
-	$(INSTALL_PROGRAM) $(STRIPFLAG) $(BUILDPYTHON) "$(DESTDIR)$(APPINSTALLDIR)/Contents/MacOS/$(PYTHONFRAMEWORK)"
+	$(INSTALL_PROGRAM) $(STRIPFLAG) $(INSTALL_PYTHON) "$(DESTDIR)$(APPINSTALLDIR)/Contents/MacOS/$(PYTHONFRAMEWORK)"
 	sed -e "s!%bundleid%!$(PYTHONFRAMEWORKIDENTIFIER)!g" \
 		-e "s!%version%!`$(RUNSHARED) $(BUILDPYTHON) \
 		-c 'import platform; print(platform.python_version())'`!g" \
