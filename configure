@@ -848,6 +848,10 @@ LIBREADLINE_CFLAGS
 WHEEL_PKG_DIR
 LIBPL
 PY_ENABLE_SHARED
+LIBPYTHON_INSTALL_NAME
+RELOCATABLE_EXTENSION_LDFLAGS
+RELOCATABLE_LIBPYTHON_LDFLAGS
+RELOCATABLE_PYTHON_LDFLAGS
 BINLIBDEST
 LIBDEST
 PLATLIBDIR
@@ -28786,6 +28790,101 @@ fi
 
 LIBDEST='${prefix}/${PLATLIBDIR}/python$(VERSION)$(ABI_THREAD)'
 BINLIBDEST='${exec_prefix}/${PLATLIBDIR}/python$(VERSION)$(ABI_THREAD)'
+
+# Runtime paths are specific to the installed location of each kind of binary.
+# Do not add them to LDSHARED: third-party extensions may be installed elsewhere.
+RELOCATABLE_PYTHON_LDFLAGS=
+RELOCATABLE_LIBPYTHON_LDFLAGS=
+RELOCATABLE_EXTENSION_LDFLAGS=
+LIBPYTHON_INSTALL_NAME='$(prefix)/lib/libpython$(LDVERSION).dylib'
+if test "$enable_relocatable" = yes && test -n "$enable_framework"
+then :
+
+  as_fn_error $? "--enable-relocatable does not support framework builds yet" "$LINENO" 5
+
+fi
+if test "$enable_relocatable" = yes && test -z "$enable_framework"
+then :
+
+  case $ac_sys_system in #(
+  Linux|Darwin) :
+     ;; #(
+  *) :
+    as_fn_error $? "relocatable builds are not implemented on $ac_sys_system yet" "$LINENO" 5 ;;
+esac
+  if test "x$prefix" = xNONE
+then :
+  relocatable_prefix=$ac_default_prefix
+else case e in #(
+  e) relocatable_prefix=$prefix ;;
+esac
+fi
+  if test "$exec_prefix" != NONE && test "$exec_prefix" != '${prefix}' && test "$exec_prefix" != "$relocatable_prefix"
+then :
+  as_fn_error $? "--enable-relocatable requires a common prefix and exec-prefix" "$LINENO" 5
+fi
+  if test "$bindir" != '${exec_prefix}/bin' && test "$bindir" != '${prefix}/bin' && test "$bindir" != "$relocatable_prefix/bin"
+then :
+  as_fn_error $? "--enable-relocatable requires the default bin directory" "$LINENO" 5
+fi
+  if test "$libdir" != '${exec_prefix}/lib' && test "$libdir" != '${prefix}/lib' && test "$libdir" != "$relocatable_prefix/lib"
+then :
+  as_fn_error $? "--enable-relocatable requires the default lib directory" "$LINENO" 5
+fi
+  case $PLATLIBDIR in #(
+  */*|.|..) :
+    as_fn_error $? "--enable-relocatable requires a single directory name for --with-platlibdir" "$LINENO" 5 ;; #(
+  *) :
+     ;;
+esac
+  case $ac_sys_system in #(
+  Linux) :
+
+      # Keep the dollar sign through configure, make, and the shell.
+      # DT_RUNPATH permits LD_LIBRARY_PATH to select build-tree libraries.
+      RELOCATABLE_PYTHON_LDFLAGS="-Wl,--enable-new-dtags,-rpath,'\$\$ORIGIN/../lib'"
+      RELOCATABLE_LIBPYTHON_LDFLAGS="-Wl,--enable-new-dtags,-rpath,'\$\$ORIGIN'"
+      RELOCATABLE_EXTENSION_LDFLAGS="-Wl,--enable-new-dtags,-rpath,'\$\$ORIGIN/../../../lib'"
+      save_LDFLAGS=$LDFLAGS
+      LDFLAGS="$LDFLAGS -Wl,--enable-new-dtags"
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+
+else case e in #(
+  e) as_fn_error $? "--enable-relocatable requires linker support for --enable-new-dtags" "$LINENO" 5 ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+      LDFLAGS=$save_LDFLAGS
+     ;; #(
+  Darwin) :
+
+      LIBPYTHON_INSTALL_NAME='@rpath/libpython$(LDVERSION).dylib'
+      RELOCATABLE_PYTHON_LDFLAGS='-Wl,-rpath,@executable_path/../lib'
+      RELOCATABLE_LIBPYTHON_LDFLAGS='-Wl,-rpath,@loader_path'
+      RELOCATABLE_EXTENSION_LDFLAGS='-Wl,-rpath,@loader_path/../../../lib'
+     ;; #(
+  *) :
+     ;;
+esac
+
+fi
+
+
+
+
 
 
 if test x$PLATFORM_TRIPLET = x; then
