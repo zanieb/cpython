@@ -1079,7 +1079,15 @@ class BasicTest(BaseTest):
         bindir = os.path.join(non_installed_dir, self.bindir)
         os.mkdir(bindir)
         python_exe = os.path.basename(sys.executable)
-        shutil.copy2(sys.executable, os.path.join(bindir, python_exe))
+        framework = sysconfig.get_config_var("PYTHONFRAMEWORK")
+        source_executable = sys.executable
+        if framework and not sysconfig.is_python_build():
+            # The framework launcher looks for the app relative to the loaded runtime.
+            # This fixture lacks that app bundle, so copy its interpreter directly.
+            source_executable = os.path.join(
+                sys.base_exec_prefix, 'Resources', 'Python.app', 'Contents',
+                'MacOS', framework)
+        shutil.copy2(source_executable, os.path.join(bindir, python_exe))
         if sys.platform == 'cygwin':
             # Copy libpython DLL
             exe_path = os.path.dirname(sys.executable)
@@ -1132,27 +1140,34 @@ class BasicTest(BaseTest):
         # venv module correctly.
         pythonpath = os.pathsep.join(
             additional_pythonpath_for_non_installed)
-        # For python built with shared enabled. We need to set
-        # LD_LIBRARY_PATH so the non-installed python can find and link
-        # libpython.so
-        ld_library_path = sysconfig.get_config_var("LIBDIR")
-        if (sysconfig.get_config_var("RELOCATABLE") == "yes"
-                and not sysconfig.get_config_var("PYTHONFRAMEWORK")):
-            ld_library_path = os.path.join(sys.base_exec_prefix, "lib")
+        # Set the library search path so the non-installed interpreter can
+        # load its shared library or framework.
+        if framework:
+            ld_library_path = sysconfig.get_config_var("PYTHONFRAMEWORKPREFIX")
+        else:
+            ld_library_path = sysconfig.get_config_var("LIBDIR")
+        if sysconfig.get_config_var("RELOCATABLE") == "yes":
+            if framework:
+                ld_library_path = os.path.abspath(os.path.join(
+                    sys.base_exec_prefix, '..', '..', '..'))
+            else:
+                ld_library_path = os.path.join(sys.base_exec_prefix, "lib")
         if not ld_library_path or sysconfig.is_python_build():
             ld_library_path = os.path.abspath(os.path.dirname(sys.executable))
-        if (sysconfig.get_config_var('Py_ENABLE_SHARED')
+        if ((sysconfig.get_config_var('Py_ENABLE_SHARED') or framework)
                 and sys.platform != 'cygwin'):
-            # Startup can search relative to libpython before the executable.
+            # Startup can search relative to the runtime library before the executable.
             # Load a copy from the temporary installation to select its
             # standard library.
             shared_libdir = os.path.join(non_installed_dir, 'lib')
-            os.makedirs(shared_libdir, exist_ok=True)
             instsoname = sysconfig.get_config_var('INSTSONAME')
-            shutil.copy2(os.path.join(ld_library_path, instsoname),
-                         os.path.join(shared_libdir, instsoname))
+            copied_library = os.path.join(shared_libdir, instsoname)
+            os.makedirs(os.path.dirname(copied_library), exist_ok=True)
+            shutil.copy2(os.path.join(ld_library_path, instsoname), copied_library)
             ld_library_path = os.pathsep.join((shared_libdir, ld_library_path))
-        if sys.platform == 'darwin':
+        if framework:
+            ld_library_path_env = "DYLD_FRAMEWORK_PATH"
+        elif sys.platform == 'darwin':
             ld_library_path_env = "DYLD_LIBRARY_PATH"
         else:
             ld_library_path_env = "LD_LIBRARY_PATH"

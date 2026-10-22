@@ -311,12 +311,16 @@ class EnvBuilder:
             if not os.path.islink(path):
                 os.chmod(path, 0o755)
                 if (sysconfig.get_config_var('RELOCATABLE') == 'yes'
-                        and sysconfig.get_config_var('Py_ENABLE_SHARED')
-                        and not sysconfig.get_config_var('PYTHONFRAMEWORK')):
+                        and (sysconfig.get_config_var('Py_ENABLE_SHARED')
+                             or sysconfig.get_config_var('PYTHONFRAMEWORK'))):
                     # The copied executable searches relative to this environment.
                     # Link the base library directory so it can find libpython.
                     if sysconfig.is_python_build():
                         library_dir = context.python_dir
+                    elif sysconfig.get_config_var('PYTHONFRAMEWORK'):
+                        # The install name includes the framework directory.
+                        library_dir = os.path.abspath(os.path.join(
+                            sys.base_exec_prefix, '..', '..', '..'))
                     else:
                         library_dir = os.path.join(sys.base_exec_prefix, 'lib')
                     library_link = os.path.join(

@@ -849,6 +849,7 @@ WHEEL_PKG_DIR
 LIBPL
 PY_ENABLE_SHARED
 RELOCATABLE_LIBPYTHON_INSTALL_NAME
+RELOCATABLE_PYTHONW_LDFLAGS
 RELOCATABLE_EXTENSION_LDFLAGS
 RELOCATABLE_LIBPYTHON_LDFLAGS
 RELOCATABLE_PYTHON_LDFLAGS
@@ -28796,14 +28797,9 @@ BINLIBDEST='${exec_prefix}/${PLATLIBDIR}/python$(VERSION)$(ABI_THREAD)'
 RELOCATABLE_PYTHON_LDFLAGS=
 RELOCATABLE_LIBPYTHON_LDFLAGS=
 RELOCATABLE_EXTENSION_LDFLAGS=
+RELOCATABLE_PYTHONW_LDFLAGS=
 RELOCATABLE_LIBPYTHON_INSTALL_NAME=
-if test "$enable_relocatable" = yes && test -n "$enable_framework"
-then :
-
-  as_fn_error $? "--enable-relocatable does not support framework builds yet" "$LINENO" 5
-
-fi
-if test "$enable_relocatable" = yes && test -z "$enable_framework"
+if test "x$enable_relocatable" = xyes
 then :
 
   case $ac_sys_system in #(
@@ -28875,12 +28871,25 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
       RELOCATABLE_PYTHON_LDFLAGS='-Wl,-rpath,@executable_path/../lib -Wl,-rpath,@executable_path/../lib/python-base'
       RELOCATABLE_LIBPYTHON_LDFLAGS='-Wl,-rpath,@loader_path'
       RELOCATABLE_EXTENSION_LDFLAGS='-Wl,-rpath,@loader_path/../../../lib'
+      if test -n "$enable_framework"
+then :
+
+        RELOCATABLE_LIBPYTHON_INSTALL_NAME='@rpath/$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
+        # The installed interpreter is inside Resources/Python.app; pythonw
+        # is the wrapper in the framework version's bin directory.
+        RELOCATABLE_PYTHON_LDFLAGS='-Wl,-rpath,@executable_path/../../../../../../.. -Wl,-rpath,@executable_path/../lib/python-base'
+        RELOCATABLE_PYTHONW_LDFLAGS='-Wl,-rpath,@executable_path/../../../.. -Wl,-rpath,@executable_path/../lib/python-base'
+        RELOCATABLE_LIBPYTHON_LDFLAGS='-Wl,-rpath,@loader_path/lib -Wl,-rpath,@loader_path/../../..'
+        as_fn_append RELOCATABLE_EXTENSION_LDFLAGS ' -Wl,-rpath,@loader_path/../../../../../..'
+
+fi
      ;; #(
   *) :
      ;;
 esac
 
 fi
+
 
 
 

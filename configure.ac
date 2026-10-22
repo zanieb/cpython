@@ -6879,11 +6879,9 @@ BINLIBDEST='${exec_prefix}/${PLATLIBDIR}/python$(VERSION)$(ABI_THREAD)'
 RELOCATABLE_PYTHON_LDFLAGS=
 RELOCATABLE_LIBPYTHON_LDFLAGS=
 RELOCATABLE_EXTENSION_LDFLAGS=
+RELOCATABLE_PYTHONW_LDFLAGS=
 RELOCATABLE_LIBPYTHON_INSTALL_NAME=
-AS_IF([test "$enable_relocatable" = yes && test -n "$enable_framework"], [
-  AC_MSG_ERROR([--enable-relocatable does not support framework builds yet])
-])
-AS_IF([test "$enable_relocatable" = yes && test -z "$enable_framework"], [
+AS_VAR_IF([enable_relocatable], [yes], [
   AS_CASE([$ac_sys_system],
     [Linux|Darwin], [],
     [AC_MSG_ERROR([relocatable builds are not implemented on $ac_sys_system yet])])
@@ -6915,11 +6913,21 @@ AS_IF([test "$enable_relocatable" = yes && test -z "$enable_framework"], [
       RELOCATABLE_PYTHON_LDFLAGS='-Wl,-rpath,@executable_path/../lib -Wl,-rpath,@executable_path/../lib/python-base'
       RELOCATABLE_LIBPYTHON_LDFLAGS='-Wl,-rpath,@loader_path'
       RELOCATABLE_EXTENSION_LDFLAGS='-Wl,-rpath,@loader_path/../../../lib'
+      AS_IF([test -n "$enable_framework"], [
+        RELOCATABLE_LIBPYTHON_INSTALL_NAME='@rpath/$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
+        # The installed interpreter is inside Resources/Python.app; pythonw
+        # is the wrapper in the framework version's bin directory.
+        RELOCATABLE_PYTHON_LDFLAGS='-Wl,-rpath,@executable_path/../../../../../../.. -Wl,-rpath,@executable_path/../lib/python-base'
+        RELOCATABLE_PYTHONW_LDFLAGS='-Wl,-rpath,@executable_path/../../../.. -Wl,-rpath,@executable_path/../lib/python-base'
+        RELOCATABLE_LIBPYTHON_LDFLAGS='-Wl,-rpath,@loader_path/lib -Wl,-rpath,@loader_path/../../..'
+        AS_VAR_APPEND([RELOCATABLE_EXTENSION_LDFLAGS], [' -Wl,-rpath,@loader_path/../../../../../..'])
+      ])
     ])
 ])
 AC_SUBST([RELOCATABLE_PYTHON_LDFLAGS])
 AC_SUBST([RELOCATABLE_LIBPYTHON_LDFLAGS])
 AC_SUBST([RELOCATABLE_EXTENSION_LDFLAGS])
+AC_SUBST([RELOCATABLE_PYTHONW_LDFLAGS])
 AC_SUBST([RELOCATABLE_LIBPYTHON_INSTALL_NAME])
 
 dnl define LIBPL after ABIFLAGS and LDVERSION is defined.

@@ -261,25 +261,14 @@ static const char *
 classify_address(uintptr_t addr, int jit_enabled, PyInterpreterState *interp)
 {
     Dl_info info;
-    if (dladdr((void *)addr, &info) != 0
-        && info.dli_fname != NULL
-        && info.dli_fname[0] != '\0') {
-        const char *base = strrchr(info.dli_fname, '/');
-        base = base ? base + 1 : info.dli_fname;
-        if (strncmp(base, "python", 6) == 0) {
+    Dl_info python_info;
+    if (dladdr((void *)addr, &info) != 0) {
+        // Framework library names need not start with `python` or `libpython`.
+        // Identify Python by the image containing `Py_Initialize`.
+        if (dladdr(&Py_Initialize, &python_info) != 0
+            && info.dli_fbase == python_info.dli_fbase) {
             return "python";
         }
-#ifdef __CYGWIN__
-        // Match Cygwin "cygpython3.16.dll"
-        if (strncmp(base, "cygpython", 9) == 0) {
-            return "python";
-        }
-#else
-        // Match "libpython3.15.so.1.0"
-        if (strncmp(base, "libpython", 9) == 0) {
-            return "python";
-        }
-#endif
         return "other";
     }
 #ifdef _Py_JIT
