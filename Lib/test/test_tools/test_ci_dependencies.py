@@ -19,12 +19,13 @@ class DependencyTests(unittest.TestCase):
         self.addCleanup(directory.cleanup)
         self.root = Path(directory.name)
         self.source = self.root / "requirements.txt"
-        self.source.write_text("example==1.0\n")
+        self.source.write_text("example==1.0\n", newline="\n")
         self.lock = self.root / "pylock.toml"
         self.lock.write_text(
             '[[packages]]\nname = "example"\nversion = "1.0"\n'
             'wheels = [{url = "https://example.invalid/example.whl", '
-            'hashes = {sha256 = "' + "a" * 64 + '"}}]\n'
+            'hashes = {sha256 = "' + "a" * 64 + '"}}]\n',
+            newline="\n",
         )
         self.inventory = {"pylock.toml": ("requirements.txt",)}
 
