@@ -1090,6 +1090,10 @@ Linker options
    a different directory name for the standard library, but not a nested path.
    On Linux, these paths use ``DT_RPATH``.
 
+   Copied virtual environments from non-framework shared builds require
+   directory symlinks to the base installation's libraries. Virtual environments
+   depend on their base installation and must be recreated if it moves.
+
    Dependencies stored in other directories, such as ``lib/tcltk``, may
    need additional loader search paths.
 
