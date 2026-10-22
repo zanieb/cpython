@@ -25,12 +25,14 @@ def regenerate(root, environment, *, uv="uv", upgrade=False,
     filename, python_version = ENVIRONMENTS[environment]
     lock = root / filename
     command = [
-        *shlex.split(uv), "pip", "compile", LOCK_INPUTS[filename][0],
+        *shlex.split(uv), "pip", "compile", "--group", LOCK_INPUTS[filename][0],
         "--universal", "--python-version", python_version,
         "--exclude-newer", "P14D",
         "--custom-compile-command",
         f"python3 Tools/build/update_ci_dependencies.py {environment}",
     ]
+    for constraint in LOCK_INPUTS[filename][1:]:
+        command.extend(["--constraint", constraint])
     # Packages maintained by the core team are exempt from the 14-day cooldown.
     if environment == "docs":
         for package in ("blurb", "python-docs-theme", "sphinx_linklint"):

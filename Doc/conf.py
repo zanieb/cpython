@@ -108,7 +108,7 @@ today_fmt = '%B %d, %Y'
 highlight_language = 'python3'
 
 # Minimum version of sphinx required
-# Keep this minimum version in sync with ``Doc/requirements.in``.
+# Keep this minimum version in sync with the ``docs`` group in ``pyproject.toml``.
 needs_sphinx = '8.2.0'
 
 # Create table of contents entries for domain objects (e.g. functions, classes,

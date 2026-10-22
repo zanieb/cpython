@@ -65,18 +65,22 @@ class TestProcessChangedFiles(unittest.TestCase):
         self.assertEqual(result, Outputs(run_tests=True, run_macos=True))
 
     def test_shared_python_dependencies(self):
-        for name in ("bootstrap.txt", "build.in", "build.txt"):
+        for name in ("bootstrap.txt", "build.txt"):
             with self.subTest(name=name):
                 result = process_changed_files({Path(f"Tools/requirements-{name}")})
                 self.assertEqual(result, Outputs(
                     run_tests=True, run_ubuntu=True, run_docs=True,
                 ))
 
+    def test_dependency_groups(self):
+        result = process_changed_files({Path("pyproject.toml")})
+        self.assertEqual(result, Outputs(
+            run_tests=True, run_ubuntu=True, run_docs=True,
+        ))
+
     def test_hypothesis_dependencies(self):
-        for name in ("requirements-hypothesis.in", "pylock.hypothesis.toml"):
-            with self.subTest(name=name):
-                result = process_changed_files({Path("Tools") / name})
-                self.assertEqual(result, Outputs(run_tests=True, run_ubuntu=True))
+        result = process_changed_files({Path("Tools/pylock.hypothesis.toml")})
+        self.assertEqual(result, Outputs(run_tests=True, run_ubuntu=True))
 
     def test_native_dependencies(self):
         for name in ("dependency-hashes.json", "download_dependencies.py"):

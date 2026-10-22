@@ -5,7 +5,7 @@ on:
     paths:
       - '.github/workflows/**'
       - '.github/dependencies/**'
-      - 'Doc/requirements*.in'
+      - 'pyproject.toml'
       - 'Doc/constraints.txt'
       - 'Doc/pylock*.toml'
       - 'Tools/requirements*'

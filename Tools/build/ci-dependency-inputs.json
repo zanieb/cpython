@@ -1,33 +1,33 @@
 {
   "Doc/pylock.epubcheck.toml": {
     "inputs": {
-      "Doc/requirements-epubcheck.in": "93cd38a16660545f45b21ea80bb20a6185b5a6e6955ea8562ec2f0bfb0426ed1"
+      "pyproject.toml:epubcheck": "4f691cdaff8553209367573cbfad3b2b1e985918442ab4c2fc1958c1790e99b2"
     },
     "sha256": "8caaef2a9fb77767801e6c1c041e72005c40c31b5d0589c17e58dddaf611b57e"
   },
   "Doc/pylock.toml": {
     "inputs": {
-      "Doc/constraints.txt": "cc852264a9d3cf48ed071bc66b4c11a3e181f053187f821d9305ba55571555e1",
-      "Doc/requirements.in": "a634698c463584458afa97dbf56c38d03229fec86c27b651aa9d1152138303fe"
+      "Doc/constraints.txt": "a42aebdcf1055d231497553ad1f8759be5337294c31f624efc51d0072ae14fe1",
+      "pyproject.toml:docs": "87bd9b4d4f1d48409df3be58e3cca02ecc1957d66ab0f7e0c9cc53669ac303bc"
     },
     "sha256": "fbc0fc0e508fd1e6ce4a86c84c05f1242260808128ae85bf9383a6c5651d4485"
   },
   "Tools/pylock.dev.toml": {
     "inputs": {
-      "Tools/requirements-dev.in": "0958d5312555a0350be4c35df4bc2ec98d4f7bc89fd07cf594448e79f770a658"
+      "pyproject.toml:typing": "802e3397ef3aba0e474c5fffc3f504ee4051685d38946ca016ffe0ba0e2fcb55"
     },
     "sha256": "e1a9a70585d57287d3ec1dca14e98a3d2849a85135623b206a1bdbdcd4109dc5"
   },
   "Tools/pylock.hypothesis.toml": {
     "inputs": {
-      "Tools/requirements-hypothesis.in": "cd6477f08cf46202cb234a97562ce51f304fc6fe3617cdf0d630d04825855f97"
+      "pyproject.toml:hypothesis": "c52f7fcaeded13ffa8e4d48c8b9c3fd3f05041f50f8155fcd25380c95ac6b85f"
     },
     "sha256": "8f6567c41eb678f4638a7834e068c9a07cb458af7bf13959030a67ad27014753"
   },
   "Tools/requirements-build.txt": {
     "inputs": {
-      "Tools/requirements-build.in": "fb0eb4e82e66c147535b1bbce19384802662289ddf18e5c1613524eb6a2e432c"
+      "pyproject.toml:build-tools": "fc7c6b64b67a2fb6c2b30c7edb85dff31144e09756daba11ac514f8185923c61"
     },
-    "sha256": "fdec93d555f7e955dd9d9c43097ac619c1e0b27a3706683f79d6acfe5098881b"
+    "sha256": "7eeccbd993ce09249af536467b5dc9b6fb2abde91c2255cebba28f364b238ce7"
   }
 }

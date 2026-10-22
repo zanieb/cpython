@@ -1,5 +1,0 @@
-# Requirements file for hypothesis that
-# we use to run our property-based tests in CI.
-# Regenerate Tools/pylock.hypothesis.toml when this requirement changes.
-
-hypothesis

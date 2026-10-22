@@ -63,6 +63,90 @@ class DependencyTests(unittest.TestCase):
         constraint.write_text("dependency<3\n")
         self.assertTrue(dependencies.check_record(self.snapshot(), recorded))
 
+    def use_groups(self, content):
+        self.source = self.root / "pyproject.toml"
+        self.source.write_text(content, encoding="utf-8", newline="\n")
+        self.inventory = {"pylock.toml": ("pyproject.toml:docs",)}
+
+    def test_selected_group_change_requires_refresh(self):
+        self.use_groups('[dependency-groups]\ndocs = ["example"]\n')
+        recorded = self.snapshot()
+        self.source.write_text('[dependency-groups]\ndocs = ["example>=2"]\n')
+        self.assertTrue(dependencies.check_record(self.snapshot(), recorded))
+
+    def test_unrelated_group_and_metadata_do_not_require_refresh(self):
+        self.use_groups('[dependency-groups]\ndocs = ["example"]\n')
+        recorded = self.snapshot()
+        self.source.write_text(
+            '# Only the selected group contributes to its input record.\n'
+            '[dependency-groups]\ndocs = ["example"]\n'
+            'typing = ["other"]\n[tool.example]\noption = true\n',
+        )
+        self.assertEqual(dependencies.check_record(self.snapshot(), recorded), [])
+
+    def test_included_group_change_requires_refresh(self):
+        self.use_groups(
+            '[dependency-groups]\ndocs = [{include-group = "shared"}]\n'
+            'shared = ["example"]\n',
+        )
+        recorded = self.snapshot()
+        self.source.write_text(
+            self.source.read_text().replace('"example"', '"example>=2"'),
+        )
+        self.assertTrue(dependencies.check_record(self.snapshot(), recorded))
+
+    def test_nested_group_includes_and_normalized_names(self):
+        self.use_groups(
+            '[dependency-groups]\n'
+            'docs = ["first", {include-group = "shared-docs"}, "last"]\n'
+            'Shared_Docs = ["example", {include-group = "base"}]\n'
+            'base = ["first"]\n',
+        )
+        self.assertEqual(
+            dependencies.group_requirements(self.source, "docs"),
+            ["first", "example", "first", "last"],
+        )
+
+    def test_group_requirements_are_checked_against_lock(self):
+        self.use_groups('[dependency-groups]\ndocs = ["example"]\n')
+        self.assertEqual(
+            dependencies.check_python_locks(self.root, self.inventory), [],
+        )
+        self.source.write_text('[dependency-groups]\ndocs = ["missing"]\n')
+        errors = dependencies.check_python_locks(self.root, self.inventory)
+        self.assertTrue(any("missing direct requirement missing" in e for e in errors))
+
+    def test_invalid_dependency_groups(self):
+        cases = [
+            ('dependency-groups = []\n', "must be a table"),
+            ('[dependency-groups]\nother = []\n', "missing dependency group"),
+            ('[dependency-groups]\ndocs = "example"\n', "must be an array"),
+            ('[dependency-groups]\ndocs = [1]\n', "invalid item"),
+            ('[dependency-groups]\ndocs = [{include-group = 1}]\n', "invalid item"),
+            ('[dependency-groups]\n'
+             'docs = [{include-group = "base", extra = true}]\n', "invalid item"),
+            ('[dependency-groups]\ndocs = [{include-group = "docs"}]\n', "group cycle"),
+            ('[dependency-groups]\ndocs = [{include-group = "base"}]\n'
+             'base = [{include-group = "docs"}]\n', "group cycle"),
+            ('[dependency-groups]\ndocs = []\n"invalid name" = []\n',
+             "invalid dependency group name"),
+            ('[dependency-groups]\ndocs = []\n'
+             'Shared_Docs = []\nshared-docs = []\n', "duplicate dependency group"),
+        ]
+        for content, message in cases:
+            with self.subTest(content=content):
+                self.use_groups(content)
+                with self.assertRaisesRegex(ValueError, message):
+                    self.snapshot()
+
+    def test_group_checkout_line_endings(self):
+        self.use_groups('[dependency-groups]\ndocs = ["example"]\n')
+        self.test_checkout_line_endings()
+
+    def test_group_constraints_are_recorded(self):
+        self.use_groups('[dependency-groups]\ndocs = ["example"]\n')
+        self.test_constraints_are_recorded()
+
     def test_removed_lock_requires_record_update(self):
         self.assertTrue(dependencies.check_record({}, self.snapshot()))
 

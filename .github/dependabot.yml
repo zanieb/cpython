@@ -18,7 +18,7 @@ updates:
       default-days: 14
 
   - package-ecosystem: "pip"
-    directory: "/Tools/"
+    directories: ["/", "/Tools/"]
     schedule:
       interval: "quarterly"
     labels: ["skip issue", "skip news"]

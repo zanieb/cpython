@@ -1,8 +1,0 @@
-# Requirements file for external linters and checks we run on
-# Tools/clinic, Tools/cases_generator/, and Tools/peg_generator/ in CI
-# Regenerate Tools/pylock.dev.toml when these requirements change.
-mypy
-
-# needed for peg_generator:
-types-psutil
-types-setuptools
