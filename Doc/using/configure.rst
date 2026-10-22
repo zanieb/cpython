@@ -1090,6 +1090,10 @@ Linker options
    a different directory name for the standard library, but not a nested path.
    On Linux, these paths use ``DT_RPATH``.
 
+   Copied virtual environments from non-framework shared builds require
+   directory symlinks to the base installation's libraries. Virtual environments
+   depend on their base installation and must be recreated if it moves.
+
    This option does not bundle dependencies, relocate their data files, or
    rewrite script shebangs and build-time paths in :mod:`sysconfig`.
 

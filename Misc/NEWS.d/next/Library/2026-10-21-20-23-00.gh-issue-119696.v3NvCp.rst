@@ -1,0 +1,4 @@
+Support copied virtual environments from non-framework shared builds configured
+with :option:`--enable-relocatable` by linking the base library directory into
+the environment. Copied environments require filesystem support for directory
+symlinks.
