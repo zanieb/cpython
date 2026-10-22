@@ -1,0 +1,2 @@
+On macOS, remote inspection in a framework build now searches for its
+configured framework name.
