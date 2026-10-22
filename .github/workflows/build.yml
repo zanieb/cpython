@@ -251,6 +251,22 @@ jobs:
     if: needs.build-context.outputs.run-ubuntu == 'true'
     uses: ./.github/workflows/reusable-install.yml
 
+  build-ubuntu-relocatable:
+    name: 'Ubuntu (relocatable)'
+    needs: build-context
+    if: needs.build-context.outputs.run-ubuntu == 'true'
+    uses: ./.github/workflows/reusable-relocatable.yml
+    with:
+      os: ubuntu-26.04-arm
+
+  build-macos-relocatable:
+    name: 'macOS (relocatable)'
+    needs: build-context
+    if: needs.build-context.outputs.run-macos == 'true'
+    uses: ./.github/workflows/reusable-relocatable.yml
+    with:
+      os: macos-26
+
   build-ubuntu-ssltests:
     name: 'Ubuntu SSL tests'
     runs-on: ${{ matrix.os }}
@@ -651,6 +667,8 @@ jobs:
     - build-macos
     - build-ubuntu
     - build-ubuntu-installed
+    - build-ubuntu-relocatable
+    - build-macos-relocatable
     - build-ubuntu-ssltests
     - build-ios
     - build-emscripten
@@ -696,12 +714,13 @@ jobs:
             && 'cifuzz,' ||
             ''
           }}
-          ${{ !fromJSON(needs.build-context.outputs.run-macos) && 'build-macos,' || '' }}
+          ${{ !fromJSON(needs.build-context.outputs.run-macos) && 'build-macos,build-macos-relocatable,' || '' }}
           ${{
             !fromJSON(needs.build-context.outputs.run-ubuntu)
             && '
             build-ubuntu,
             build-ubuntu-installed,
+            build-ubuntu-relocatable,
             build-ubuntu-ssltests,
             test-hypothesis,
             build-asan,
