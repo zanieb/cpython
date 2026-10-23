@@ -1550,6 +1550,19 @@ class PathTest(PurePathTest):
         with mock.patch(patchpoint, make_raiser(errno.ENOENT)):
             self.assertRaises(FileNotFoundError, source.copy, target)
 
+    @unittest.skipUnless(hasattr(fcntl, 'FICLONE'), 'requires fcntl.FICLONE')
+    def test_copy_ficlone_fallback(self):
+        base = self.cls(self.base)
+        source = base / 'fileA'
+        for err in (errno.EACCES, errno.ENOTTY, errno.EPERM):
+            with self.subTest(errno=err):
+                target = base / f'copy{err}'
+                error = OSError(err, os.strerror(err))
+                with mock.patch('fcntl.ioctl', side_effect=error) as ioctl:
+                    source.copy(target)
+                ioctl.assert_called_once()
+                self.assertEqual(target.read_bytes(), source.read_bytes())
+
     @unittest.skipIf(sys.platform == "win32" or sys.platform == "wasi", "directories are always readable on Windows and WASI")
     @requires_non_root_user
     def test_copy_dir_no_read_permission(self):
