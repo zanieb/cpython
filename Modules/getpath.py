@@ -577,7 +577,7 @@ else:
             stdlib_dir = None
 
 
-    # First try to detect prefix by looking alongside our runtime library, if known
+    # First try to detect prefix by searching from our runtime library, if known.
     if library and not prefix:
         library_dir = dirname(library)
         if ZIP_LANDMARK:
@@ -588,10 +588,14 @@ else:
             else:
                 prefix = search_up(library_dir, ZIP_LANDMARK)
         if STDLIB_SUBDIR and STDLIB_LANDMARKS and not prefix:
-            if any(isfile(joinpath(library_dir, f)) for f in STDLIB_LANDMARKS):
+            # A relative loader path may have been resolved against an earlier
+            # working directory.
+            if os_name != 'nt' and isabs(library):
+                prefix = search_up(dirname(abspath(library)), *STDLIB_LANDMARKS)
+            elif any(isfile(joinpath(library_dir, f)) for f in STDLIB_LANDMARKS):
                 prefix = library_dir
-                if not stdlib_dir_was_set_in_config:
-                    stdlib_dir = joinpath(prefix, STDLIB_SUBDIR)
+            if prefix and not stdlib_dir_was_set_in_config:
+                stdlib_dir = joinpath(prefix, STDLIB_SUBDIR)
 
 
     # Detect prefix by looking for zip file

@@ -1,0 +1,3 @@
+A relocated POSIX shared build can now find its unpacked standard library at
+startup when a launcher's ``argv[0]`` points outside the installation,
+provided the loader reports an absolute path to ``libpython``.
