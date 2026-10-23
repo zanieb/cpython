@@ -153,7 +153,7 @@ rm -f pybuilddir.txt
 
 AC_ARG_WITH([build-python],
   [AS_HELP_STRING([--with-build-python=python]PYTHON_VERSION,
-                  [path to build python binary for cross compiling (default: _bootstrap_python or python]PYTHON_VERSION[)])],
+                  [path to build python binary for building and freezing modules (default: _bootstrap_python or python]PYTHON_VERSION[)])],
   [
     AC_MSG_CHECKING([for --with-build-python])
 
@@ -186,15 +186,7 @@ AC_MSG_CHECKING([for Python interpreter freezing])
 AC_MSG_RESULT([$PYTHON_FOR_FREEZE])
 AC_SUBST([PYTHON_FOR_FREEZE])
 
-AS_VAR_IF([cross_compiling], [yes],
-  [
-    dnl external build Python, freezing depends on Programs/_freeze_module.py
-    FREEZE_MODULE_BOOTSTRAP='$(PYTHON_FOR_FREEZE) $(srcdir)/Programs/_freeze_module.py'
-    FREEZE_MODULE_BOOTSTRAP_DEPS='$(srcdir)/Programs/_freeze_module.py'
-    FREEZE_MODULE='$(FREEZE_MODULE_BOOTSTRAP)'
-    FREEZE_MODULE_DEPS='$(FREEZE_MODULE_BOOTSTRAP_DEPS)'
-    PYTHON_FOR_BUILD_DEPS=''
-  ],
+AS_VAR_IF([with_build_python], [],
   [
     dnl internal build tools also depend on Programs/_freeze_module and _bootstrap_python.
     FREEZE_MODULE_BOOTSTRAP='./Programs/_freeze_module'
@@ -202,6 +194,14 @@ AS_VAR_IF([cross_compiling], [yes],
     FREEZE_MODULE='$(PYTHON_FOR_FREEZE) $(srcdir)/Programs/_freeze_module.py'
     FREEZE_MODULE_DEPS="_bootstrap_python \$(srcdir)/Programs/_freeze_module.py"
     PYTHON_FOR_BUILD_DEPS='$(BUILDPYTHON)'
+  ],
+  [
+    dnl external build Python, freezing depends on Programs/_freeze_module.py
+    FREEZE_MODULE_BOOTSTRAP='$(PYTHON_FOR_FREEZE) $(srcdir)/Programs/_freeze_module.py'
+    FREEZE_MODULE_BOOTSTRAP_DEPS='$(srcdir)/Programs/_freeze_module.py'
+    FREEZE_MODULE='$(FREEZE_MODULE_BOOTSTRAP)'
+    FREEZE_MODULE_DEPS='$(FREEZE_MODULE_BOOTSTRAP_DEPS)'
+    PYTHON_FOR_BUILD_DEPS=''
   ]
 )
 AC_SUBST([FREEZE_MODULE_BOOTSTRAP])

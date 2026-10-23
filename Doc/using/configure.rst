@@ -1424,7 +1424,14 @@ the version of the cross compiled host Python.
 
 .. option:: --with-build-python=path/to/python
 
-   path to build ``python`` binary for cross compiling
+   Path to a build ``python`` binary used to freeze modules and run build
+   commands. Required when cross compiling; optional for native builds. The
+   build interpreter must have the same major and minor version as the Python
+   being built.
+
+   .. versionchanged:: 3.16
+      Native builds also use the supplied interpreter to freeze bootstrap
+      modules, instead of building an internal bootstrap interpreter.
 
    .. versionadded:: 3.11
 
