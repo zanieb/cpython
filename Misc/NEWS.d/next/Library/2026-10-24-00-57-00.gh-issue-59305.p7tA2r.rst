@@ -1,0 +1,2 @@
+On POSIX, :func:`shutil.copy2` creates new files with owner-only permissions
+until it applies the source metadata.

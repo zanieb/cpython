@@ -1513,11 +1513,35 @@ class TestCopy(BaseTest, unittest.TestCase):
         dst = os.path.join(tmp_dir, 'bar')
         create_file(src, 'foo')
         os.setxattr(src, 'user.foo', b'42')
+        os.chmod(src, 0o444)
         shutil.copy2(src, dst)
         self.assertEqual(
                 os.getxattr(src, 'user.foo'),
                 os.getxattr(dst, 'user.foo'))
+        self.assertEqual(stat.S_IMODE(os.stat(dst).st_mode), 0o444)
         os.remove(dst)
+
+    @unittest.skipUnless(hasattr(os, 'listxattr'), 'requires os.listxattr')
+    def test_copy2_listxattr_permission_error(self):
+        tmp_dir = self.mkdtemp()
+        src = os.path.join(tmp_dir, 'src')
+        create_file(src, 'contents')
+        for err, mode in ((errno.EACCES, 0o600), (errno.EPERM, 0o700)):
+            with self.subTest(errno=err, mode=mode), os_helper.temp_umask(0o022):
+                os.chmod(src, mode)
+                dst = os.path.join(tmp_dir, f'dst{err}')
+                error = PermissionError(err, os.strerror(err))
+
+                def deny_listxattr(*args, **kwargs):
+                    self.assertEqual(stat.S_IMODE(os.stat(dst).st_mode), mode)
+                    raise error
+
+                with unittest.mock.patch('os.listxattr', deny_listxattr):
+                    with self.assertRaises(PermissionError) as cm:
+                        shutil.copy2(src, dst)
+                self.assertIs(cm.exception, error)
+                self.assertEqual(stat.S_IMODE(os.stat(dst).st_mode), mode)
+                self.assertEqual(read_file(dst), 'contents')
 
     def test_copy_return_value(self):
         # copy and copy2 both return their destination path.

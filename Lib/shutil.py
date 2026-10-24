@@ -292,6 +292,9 @@ def copyfile(src, dst, *, follow_symlinks=True):
     symlink will be created instead of copying the file it points to.
 
     """
+    return _copyfile(src, dst, follow_symlinks, private=False)
+
+def _copyfile(src, dst, follow_symlinks, *, private):
     sys.audit("shutil.copyfile", src, dst)
 
     if _samefile(src, dst):
@@ -328,7 +331,16 @@ def copyfile(src, dst, *, follow_symlinks=True):
     else:
         with open(src, 'rb') as fsrc:
             try:
-                with open(dst, 'wb') as fdst:
+                if private:
+                    def opener(path, flags):
+                        # Only the owner can access a new file until copystat()
+                        # applies the source mode. Setting xattrs needs write access.
+                        mode = os.fstat(fsrc.fileno()).st_mode & stat.S_IRWXU
+                        return os.open(path, flags, mode | stat.S_IWUSR)
+                    fdst = open(dst, 'wb', opener=opener)
+                else:
+                    fdst = open(dst, 'wb')
+                with fdst:
                     # macOS
                     if _HAS_FCOPYFILE:
                         try:
@@ -542,7 +554,7 @@ def copy2(src, dst, *, follow_symlinks=True):
             else:
                 raise
 
-    copyfile(src, dst, follow_symlinks=follow_symlinks)
+    _copyfile(src, dst, follow_symlinks, private=os.name == 'posix')
     copystat(src, dst, follow_symlinks=follow_symlinks)
     return dst
 
